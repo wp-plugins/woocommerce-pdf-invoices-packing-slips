@@ -1,4 +1,4 @@
-=== WooCommerce PDF Invoices & Packing Slips ===
+=== Plugin Name ===
 Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
