@@ -13,14 +13,19 @@ Create, print & email PDF invoices & packing slips for WooCommerce orders.
 
 This WooCommerce extension lets you add a PDF invoice to the order confirmation emails sent out to your customers. Includes a basic template (additional templates are available from [WP Overnight](https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/)) as well as the possibility to modify/create your own templates. In addition, you can choose to download or print invoices and packing slips from the WooCommerce order admin.
 
-Main features:
+= Fully customizable =
+In addition to a number of default settings (including a custom header/logo) and several layout fields that you can use out of the box, the plugin contains html/css based templates that allow for customization & full control over the PDF output.
 
+= Main features =
 * Export invoices or packing slips to PDF (individually or in bulk)
 * Automatically attach invoice PDF to order confirmation email
 * Insert customer header image/logo
 * Modify shop data / footer / disclaimer etc. on the invoices & packing slips
 * Select paper size (Letter or A4)
 * Custom templating engine
+* Translation ready
+
+If you want more control over the invoice numbers, we recommend that you also install the (free) [WooCommerce Sequential Order Numbers plugin](http://wordpress.org/plugins/woocommerce-sequential-order-numbers/)
 
 == Installation ==
 
