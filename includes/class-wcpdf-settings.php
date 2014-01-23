@@ -72,7 +72,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			}
 		
 			if ( $file == WooCommerce_PDF_Invoices::$plugin_basename ) {
-				$links[] = '<a href="..." target="_blank" title="' . __( '...', 'wpo_wcpdf' ) . '">' . __( '...', 'wpo_wcpdf' ) . '</a>';
+				// $links[] = '<a href="..." target="_blank" title="' . __( '...', 'wpo_wcpdf' ) . '">' . __( '...', 'wpo_wcpdf' ) . '</a>';
 			}
 			return $links;
 		}
