@@ -20,6 +20,7 @@ This WooCommerce extension lets you add a PDF invoice to the order confirmation 
 
 = Fully customizable =
 In addition to a number of default settings (including a custom header/logo) and several layout fields that you can use out of the box, the plugin contains HTML/CSS based templates that allow for customization & full control over the PDF output.
+
 * Insert customer header image/logo
 * Modify shop data / footer / disclaimer etc. on the invoices & packing slips
 * Select paper size (Letter or A4)
