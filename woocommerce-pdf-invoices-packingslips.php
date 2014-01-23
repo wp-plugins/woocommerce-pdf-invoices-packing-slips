@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -93,7 +93,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 */
 		 
 		public function need_woocommerce() {
-			$error = sprintf( __( 'WooCommerce PDF Invoices & Packing Slips requires <a href="%s">WooCommerce</a> to be installed & activated!' , 'wpo_wcpdf' ), 'http://wordpress.org/extend/plugins/woocommerce/' );
+			$error = sprintf( __( 'WooCommerce PDF Invoices & Packing Slips requires %sWooCommerce%s to be installed & activated!' , 'wpo_wcpdf' ), '<a href="http://wordpress.org/extend/plugins/woocommerce/">', '</a>' );
 			
 			$message = '<div class="error"><p>' . $error . '</p></div>';
 		
@@ -135,7 +135,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		public function header_logo() {
 			if ($this->get_header_logo_id()) {
 				$attachment_id = $this->get_header_logo_id();
-				$company = isset($this->settings->template_settings['shop_name'])?:'';
+				$company = isset($this->settings->template_settings['shop_name'])? $this->settings->template_settings['shop_name'] : '';
 				if( $attachment_id ) {
 					$attachment = wp_get_attachment_image_src( $attachment_id, 'full', false );
 					
@@ -361,12 +361,19 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		/**
 		 * Return the order fees
 		 */
-		public function get_order_fees() {
+		public function get_order_fees( $tax = 'excl' ) {
 			if ( $wcfees = $this->export->order->get_fees() ) {
 				foreach( $wcfees as $id => $fee ) {
+					if ($tax = 'excl' ) {
+						$fee_price = woocommerce_price( $fee['line_total'] );
+					} else {
+						$fee_price = woocommerce_price( $fee['line_total'] + $fee['line_tax'] );
+					}
+
+
 					$fees[ $id ] = array(
 						'label' => $fee['name'],
-						'value'	=> woocommerce_price( $fee['line_total'] + $fee['line_tax'] )
+						'value'	=> $fee_price
 					);
 				}
 				return $fees;

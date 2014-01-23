@@ -13,6 +13,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		public function __construct() {
 			add_action( 'woocommerce_admin_order_actions_end', array( $this, 'add_listing_actions' ) );
 			add_action( 'add_meta_boxes_shop_order', array( $this, 'add_box' ) );
+			add_filter( 'woocommerce_my_account_my_orders_actions', array( $this, 'my_account_pdf_link' ), 10, 2 );
 			add_action( 'admin_print_scripts', array( $this, 'add_scripts' ) );
 			add_action( 'admin_print_styles', array( $this, 'add_styles' ) );
 			add_action( 'admin_footer-edit.php', array(&$this, 'bulk_actions') );
@@ -78,6 +79,17 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 */
 		public function add_box() {
 			add_meta_box( 'wpo_wcpdf-box', __( 'Create PDF', 'wpo_wcpdf' ), array( $this, 'create_box_content' ), 'shop_order', 'side', 'default' );
+		}
+
+		public function my_account_pdf_link( $actions, $order ) {
+			$pdf_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order->id . '&my-account'), 'generate_wpo_wcpdf' );
+
+			$actions['invoice'] = array(
+				'url'  => $pdf_url,
+				'name' => __( 'Download invoice (PDF)', 'wpo_wcpdf' )
+			);
+
+			return $actions;
 		}
 
 		/**

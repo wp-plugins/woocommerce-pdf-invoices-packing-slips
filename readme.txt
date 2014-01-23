@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8 and WooCommerce 2.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,16 +13,16 @@ Create, print & email PDF invoices & packing slips for WooCommerce orders.
 
 This WooCommerce extension lets you add a PDF invoice to the order confirmation emails sent out to your customers. Includes a basic template (additional templates are available from [WP Overnight](https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/)) as well as the possibility to modify/create your own templates. In addition, you can choose to download or print invoices and packing slips from the WooCommerce order admin.
 
-= Fully customizable =
-In addition to a number of default settings (including a custom header/logo) and several layout fields that you can use out of the box, the plugin contains html/css based templates that allow for customization & full control over the PDF output.
-
 = Main features =
 * Export invoices or packing slips to PDF (individually or in bulk)
 * Automatically attach invoice PDF to order confirmation email
+* Users can download their invoices from the My Account page
+
+= Fully customizable =
+In addition to a number of default settings (including a custom header/logo) and several layout fields that you can use out of the box, the plugin contains HTML/CSS based templates that allow for customization & full control over the PDF output.
 * Insert customer header image/logo
 * Modify shop data / footer / disclaimer etc. on the invoices & packing slips
 * Select paper size (Letter or A4)
-* Custom templating engine
 * Translation ready
 
 If you want more control over the invoice numbers, we recommend that you also install the (free) [WooCommerce Sequential Order Numbers plugin](http://wordpress.org/plugins/woocommerce-sequential-order-numbers/)
@@ -64,6 +64,14 @@ Go to [wpovernight.com](https://wpovernight.com/downloads/woocommerce-pdf-invoic
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.0.1 =
+* Feature: Fees can now also be called ex. VAT
+* Feature: Invoices can now be downloaded from the My Account page
+* Feature: Spanish translation & POT file included
+* Tweak: Packing slip now displays shipping address instead of billing address
+* Tweak: Variation data is now displayed by default
+* Fix: ternary statement that caused an error
 
 = 1.0.0 =
 * First release

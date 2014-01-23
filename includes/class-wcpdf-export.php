@@ -91,8 +91,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		/**
 		 * Load and generate the template output with ajax
 		 */
-		public function generate_pdf_ajax() {		
-			
+		public function generate_pdf_ajax() {
 			// Check the nonce
 			if( empty( $_GET['action'] ) || ! is_user_logged_in() || !check_admin_referer( $_GET['action'] ) ) {
 				wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
@@ -102,13 +101,36 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			if( empty( $_GET['template_type'] ) || empty( $_GET['order_ids'] ) ) {
 				wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
 			}
-			
+
 			// Check the user privileges
-			if( !current_user_can( 'manage_woocommerce_orders' ) && !current_user_can( 'edit_shop_orders' ) ) {
+			if( !current_user_can( 'manage_woocommerce_orders' ) && !current_user_can( 'edit_shop_orders' ) && !isset( $_GET['my-account'] ) ) {
 				wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
 			}
-			
+
 			$order_ids = (array) explode('x',$_GET['order_ids']);
+
+			// User call from my-account page
+			if ( isset( $_GET['my-account'] ) ) {
+				// Only for single orders!
+				if ( count( $order_ids ) > 1 ) {
+					wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
+				}
+
+				// Get user_id of order
+				$order = new WC_Order ( $order_ids[0] );
+				$order_user = $order->user_id;
+				// Destroy object to save memory
+				unset($order);
+				// Get user_id of current user
+				$user_id = get_current_user_id();	
+
+				// Check if current user is owner of order IMPORTANT!!!
+				if ( $order_user != $user_id ) {
+					wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
+				}
+
+				// if we got here, we're safe to go!
+			}
 
 			$template_type = $_GET['template_type'];
 			if ($template_type == 'invoice' ) {
@@ -116,7 +138,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			} else {
 				$template_name = _n( 'packing-slip', 'packing-slips', count($order_ids), 'wpo_wcpdf' );
 			}
-
 
 			// Filename
 			if ( count($order_ids) > 1 ) {

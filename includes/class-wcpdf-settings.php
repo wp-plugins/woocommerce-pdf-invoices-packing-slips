@@ -57,9 +57,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		 * Add settings link to plugins page
 		 */
 		public function wpo_wcpdf_add_settings_link( $links ) {
-		    $settings_link = '<a href="admin.php?page=wpo_wcpdf_options_page">'. __( 'Settings', 'woocommerce' ) . '</a>';
-		  	array_push( $links, $settings_link );
-		  	return $links;
+			$settings_link = '<a href="admin.php?page=wpo_wcpdf_options_page">'. __( 'Settings', 'woocommerce' ) . '</a>';
+			array_push( $links, $settings_link );
+			return $links;
 		}
 		
 		/**
@@ -85,17 +85,19 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					<div class="icon32" id="icon-options-general"><br /></div>
 					<h2><?php _e( 'WooCommerce PDF Invoices', 'wpo_wcpdf' ); ?></h2>
 					<h2 class="nav-tab-wrapper">  
-					    <a href="?page=wpo_wcpdf_options_page&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>"><?php _e('General','wpo_wcpdf') ?></a>  
-					    <a href="?page=wpo_wcpdf_options_page&tab=template" class="nav-tab <?php echo $active_tab == 'template' ? 'nav-tab-active' : ''; ?>"><?php _e('Template','wpo_wcpdf') ?></a>  
+						<a href="?page=wpo_wcpdf_options_page&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>"><?php _e('General','wpo_wcpdf') ?></a>  
+						<a href="?page=wpo_wcpdf_options_page&tab=template" class="nav-tab <?php echo $active_tab == 'template' ? 'nav-tab-active' : ''; ?>"><?php _e('Template','wpo_wcpdf') ?></a>  
 					</h2>
 
-					<?php if (!class_exists('WooCommerce_PDF_IPS_Templates')) { ?>
+					<?php if (!class_exists('WooCommerce_PDF_IPS_Templates')) {
+						$template_url = '<a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/" target="_blank">wpovernight.com</a>';
+						?>
 	
-	 				<div class="wcpdf-pro-templates" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-top: 15px; background-color: #eee;">
-						<?php _e('Looking for more advanced templates? Check out the Premium PDF Invoice & Packing Slips templates at <a href="#">wpovernight.com</a>.', 'wpo_wcpdf');?>
-	 				</div>
+						<div class="wcpdf-pro-templates" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-top: 15px; background-color: #eee;">
+							<?php printf( __("Looking for more advanced templates? Check out the Premium PDF Invoice & Packing Slips templates at %s.", 'wpo_wcpdf'), $template_url );?>
+						</div>
 
-	 				<?php } ?>
+					<?php } ?>
 
 					<form method="post" action="options.php">
 						<?php
@@ -216,7 +218,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					'menu'			=> $option,
 					'id'			=> 'template_path',
 					'options' 		=> $this->find_templates(),
-					'description'	=> __( 'Want to use your own template? Copy the files from <code>woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple/</code> to <code>yourtheme/woocommerce/pdf/yourtemplate/</code> to customize them' , 'wpo_wcpdf' ),
+					'description'	=> __( 'Want to use your own template? Copy all the files from <code>woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple/</code> to <code>yourtheme/woocommerce/pdf/yourtemplate/</code> to customize them' , 'wpo_wcpdf' ),
 				)
 			);			
 
