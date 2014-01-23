@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8 and WooCommerce 2.1
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,13 +65,15 @@ Go to [wpovernight.com](https://wpovernight.com/downloads/woocommerce-pdf-invoic
 
 == Changelog ==
 
-= 1.0.1 =
+= 1.1.0 =
 * Feature: Fees can now also be called ex. VAT
 * Feature: Invoices can now be downloaded from the My Account page
 * Feature: Spanish translation & POT file included
+* Fix: ternary statements that caused an error
+
+= 1.0.1 =
 * Tweak: Packing slip now displays shipping address instead of billing address
 * Tweak: Variation data is now displayed by default
-* Fix: ternary statement that caused an error
 
 = 1.0.0 =
 * First release

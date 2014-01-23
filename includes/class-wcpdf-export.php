@@ -187,7 +187,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			// clear temp folder (from http://stackoverflow.com/a/13468943/1446634)
 			$tmp_path = WooCommerce_PDF_Invoices::$plugin_path . 'tmp/';
-			array_map('unlink', ( glob( $tmp_path.'*' ) ?: array() ) );
+			array_map('unlink', ( glob( $tmp_path.'*' ) ? glob( $tmp_path.'*' ) : array() ) );
 			
 			$order_status = apply_filters( 'wpo_wcpdf_attach_to_status', 'completed' );
 
