@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -307,7 +307,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		}
 		
 		/**
-		 * Return the order subtotal
+		 * Return/show the order subtotal
 		 */
 		public function get_order_subtotal( $tax = 'excl', $discount = 'incl' ) { // set $tax to 'incl' to include tax, same for $discount
 			//$compound = ($discount == 'incl')?true:false;
@@ -323,13 +323,17 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			
 			return apply_filters( 'wpo_wcpdf_order_subtotal', $subtotal );
 		}
+		public function order_subtotal( $tax = 'excl', $discount = 'incl' ) {
+			$subtotal = $this->get_order_subtotal( $tax, $discount );
+			echo $subtotal['value'];
+		}
 	
 		/**
-		 * Return the order shipping costs
+		 * Return/show the order shipping costs
 		 */
 		public function get_order_shipping( $tax = 'excl' ) { // set $tax to 'incl' to include tax
 			if ($tax = 'excl' ) {
-				$shipping_costs = $this->export->order->get_shipping_to_display( 'excl' );
+				$shipping_costs = woocommerce_price ( $this->export->order->order_shipping );
 			} else {
 				$shipping_costs = woocommerce_price ( $this->export->order->order_shipping + $this->export->order->order_shipping_tax );
 			}
@@ -340,9 +344,13 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			);
 			return apply_filters( 'wpo_wcpdf_order_shipping', $shipping );
 		}
-	
+		public function order_shipping( $tax = 'excl' ) {
+			$shipping = $this->get_order_shipping( $tax );
+			echo $shipping['value'];
+		}
+
 		/**
-		 * Return the total discount
+		 * Return/show the total discount
 		 */
 		public function get_order_discount() {
 			$cart_discount = $this->export->order->get_cart_discount_to_display(); //before tax
@@ -356,6 +364,10 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 
 			if ( $total_discount > 0 )
 				return apply_filters( 'wpo_wcpdf_order_discount', $discount );
+		}
+		public function order_discount() {
+			$discount = $this->get_order_discount();
+			echo $discount['value'];
 		}
 
 		/**
@@ -397,7 +409,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		}
 
 		/**
-		 * Return the order grand total
+		 * Return/show the order grand total
 		 */
 		public function get_order_grand_total( $tax = 'incl' ) {
 			if ($tax == 'excl' ) {
@@ -428,6 +440,11 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 
 			return apply_filters( 'wpo_wcpdf_order_grand_total', $grand_total );
 		}
+		public function order_grand_total( $tax = 'incl' ) {
+			$grand_total = $this->get_order_grand_total( $tax );
+			echo $grand_total['value'];
+		}
+
 
 		/**
 		 * Return/Show shipping notes

@@ -90,11 +90,13 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					</h2>
 
 					<?php if (!class_exists('WooCommerce_PDF_IPS_Templates')) {
-						$template_url = '<a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/" target="_blank">wpovernight.com</a>';
+						$template_link = '<a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/" target="_blank">wpovernight.com</a>';
+						$email_link = '<a href="mailto:support@wpovernight.com">support@wpovernight.com</a>'
 						?>
 	
 						<div class="wcpdf-pro-templates" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-top: 15px; background-color: #eee;">
-							<?php printf( __("Looking for more advanced templates? Check out the Premium PDF Invoice & Packing Slips templates at %s.", 'wpo_wcpdf'), $template_url );?>
+							<?php printf( __("Looking for more advanced templates? Check out the Premium PDF Invoice & Packing Slips templates at %s.", 'wpo_wcpdf'), $template_link );?> <br />
+							<?php printf( __("For custom templates, contact us at %s.", 'wpo_wcpdf'), $email_link );?>
 						</div>
 
 					<?php } ?>

@@ -52,11 +52,20 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$output_html[$order_id] = $this->get_template($template);
 			}
 
+			// Try to clean up a bit of memory
+			unset($this->order);
+
 			$page_break = "\n<div style=\"page-break-before: always;\"></div>\n";
 			$this->output_body = implode($page_break, $output_html);
-			
+
+			// Try to clean up a bit of memory
+			unset($output_html);
+						
 			$template_wrapper = $this->template_path . '/html-document-wrapper.php';
 			$complete_pdf = $this->get_template($template_wrapper);
+
+			// Try to clean up a bit of memory
+			unset($this->output_body);
 			
 			// clean up special characters
 			$complete_pdf = utf8_decode(mb_convert_encoding($complete_pdf, 'HTML-ENTITIES', 'UTF-8'));
@@ -68,6 +77,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$dompdf->load_html($complete_pdf);
 			$dompdf->set_paper($this->template_settings['paper_size'], 'portrait');
 			$dompdf->render();
+
+			// Try to clean up a bit of memory
+			unset($complete_pdf);
 
 			return $dompdf;
 		}

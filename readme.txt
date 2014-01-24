@@ -3,15 +3,15 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8 and WooCommerce 2.1
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Create, print & email PDF invoices & packing slips for WooCommerce orders.
+Create, print & automatically email PDF invoices & packing slips for WooCommerce orders.
 
 == Description ==
 
-This WooCommerce extension lets you add a PDF invoice to the order confirmation emails sent out to your customers. Includes a basic template (additional templates are available from [WP Overnight](https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/)) as well as the possibility to modify/create your own templates. In addition, you can choose to download or print invoices and packing slips from the WooCommerce order admin.
+This WooCommerce extension automatically adds a PDF invoice to the order confirmation emails sent out to your customers. Includes a basic template (additional templates are available from [WP Overnight](https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/)) as well as the possibility to modify/create your own templates. In addition, you can choose to download or print invoices and packing slips from the WooCommerce order admin.
 
 = Main features =
 * Export invoices or packing slips to PDF (individually or in bulk)
@@ -55,7 +55,7 @@ Copy the files from `woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple
 
 = Where can I find more templates? =
 
-Go to [wpovernight.com](https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/) to checkout more templates! These include templates with more tax details and product thumbnails.
+Go to [wpovernight.com](https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/) to checkout more templates! These include templates with more tax details and product thumbnails. Need a custom templates? Contact us at support@wpovernight.com for more information.
 
 == Screenshots ==
 
@@ -65,6 +65,11 @@ Go to [wpovernight.com](https://wpovernight.com/downloads/woocommerce-pdf-invoic
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.1.2 =
+* Feature: Totals can now be called with simpler template functions
+* Feature: Italian translations - thanks max66max!
+* Tweak: improved memory performance
 
 = 1.1.1 =
 * Feature: French translations - thanks Guillaume!
