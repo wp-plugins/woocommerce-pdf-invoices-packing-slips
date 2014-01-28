@@ -143,9 +143,15 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 					$attachment_width = $attachment[1];
 					$attachment_height = $attachment[2];
 
-					$attachment_path = get_attached_file( $attachment_id );
+					if (apply_filters('wpo_wcpdf_use_path', true)) {
+						$src = get_attached_file( $attachment_id );
+					} else {
+						$src = $attachment_src;
+					}
+
+					$attachment_path = 
 					
-					printf('<img src="%1$s" width="%2$d" height="%3$d" alt="%4$s" />', $attachment_path, $attachment_width, $attachment_height, esc_attr( $company ) );
+					printf('<img src="%1$s" width="%2$d" height="%3$d" alt="%4$s" />', $src, $attachment_width, $attachment_height, esc_attr( $company ) );
 				}
 			}
 		}
