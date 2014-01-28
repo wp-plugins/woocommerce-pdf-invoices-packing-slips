@@ -50,6 +50,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$this->order = new WC_Order( $order_id );
 				$template = $this->template_path . '/' . $template_type . '.php';
 				$output_html[$order_id] = $this->get_template($template);
+
+				// Wipe post from cache
+				wp_cache_delete( $order_id, 'posts' );
+				wp_cache_delete( $order_id, 'post_meta' );
 			}
 
 			// Try to clean up a bit of memory
@@ -60,7 +64,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			// Try to clean up a bit of memory
 			unset($output_html);
-						
+
 			$template_wrapper = $this->template_path . '/html-document-wrapper.php';
 			$complete_pdf = $this->get_template($template_wrapper);
 
@@ -69,7 +73,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			
 			// clean up special characters
 			$complete_pdf = utf8_decode(mb_convert_encoding($complete_pdf, 'HTML-ENTITIES', 'UTF-8'));
-			
+
 			// die($complete_pdf); //output html to browser for debug
 			
 			require_once( WooCommerce_PDF_Invoices::$plugin_path . "lib/dompdf/dompdf_config.inc.php" );  

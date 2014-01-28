@@ -8,6 +8,8 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
+if ( class_exists( 'DOMPDF' , false ) ) { return; }
+
 //error_reporting(E_STRICT | E_ALL | E_DEPRECATED);
 //ini_set("display_errors", 1);
 
@@ -55,7 +57,7 @@ require_once(DOMPDF_INC_DIR . "/functions.inc.php");
  * Username and password used by the configuration utility in www/
  */
 def("DOMPDF_ADMIN_USERNAME", "user");
-def("DOMPDF_ADMIN_PASSWORD", "wpovernight");
+def("DOMPDF_ADMIN_PASSWORD", "password");
 
 /**
  * The location of the DOMPDF font directory
@@ -195,7 +197,7 @@ def("DOMPDF_DEFAULT_MEDIA_TYPE", "screen");
  *
  * @see CPDF_Adapter::PAPER_SIZES for valid sizes
  */
-def("DOMPDF_DEFAULT_PAPER_SIZE", "a4");
+def("DOMPDF_DEFAULT_PAPER_SIZE", "letter");
 
 /**
  * The default font family
@@ -203,7 +205,7 @@ def("DOMPDF_DEFAULT_PAPER_SIZE", "a4");
  * Used if no suitable fonts can be found. This must exist in the font folder.
  * @var string
  */
-def("DOMPDF_DEFAULT_FONT", "sans-serif");
+def("DOMPDF_DEFAULT_FONT", "serif");
 
 /**
  * Image DPI setting
@@ -329,7 +331,7 @@ require_once(DOMPDF_LIB_DIR . "/html5lib/Parser.php");
  */
 if (DOMPDF_ENABLE_AUTOLOAD) {
   require_once(DOMPDF_INC_DIR . "/autoload.inc.php");
-  require_once(DOMPDF_LIB_DIR . "/php-font-lib/classes/font.cls.php");
+  require_once(DOMPDF_LIB_DIR . "/php-font-lib/classes/Font.php");
 }
 
 /**

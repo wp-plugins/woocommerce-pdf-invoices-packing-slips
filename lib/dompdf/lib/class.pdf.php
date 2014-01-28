@@ -2335,6 +2335,7 @@ EOT;
           // load the pfb file, and put that into an object too.
           // note that pdf supports only binary format type 1 font files, though there is a
           // simple utility to convert them from pfa to pfb.
+          // FIXME: should we move font subset creation to CPDF::output? See notes in issue #750.
           if (!$this->isUnicode || $fbtype !== 'ttf' || empty($this->stringSubsets)) {
             $data = file_get_contents($fbfile);
           }
@@ -3491,7 +3492,7 @@ EOT;
 
   /**
    * calculate how wide a given text string will be on a page, at a given size.
-   * this can be called externally, but is alse used by the other class functions
+   * this can be called externally, but is also used by the other class functions
    */
   function getTextWidth($size, $text, $word_spacing = 0, $char_spacing = 0) {
     static $ord_cache = array();
@@ -3515,7 +3516,7 @@ EOT;
     $w = 0;
     $cf = $this->currentFont;
     $current_font = $this->fonts[$cf];
-    $space_scale = 1000 / $size;
+    $space_scale = 1000 / ( $size > 0 ? $size : 1 );
     $n_spaces = 0;
 
     if ( $current_font['isUnicode']) {

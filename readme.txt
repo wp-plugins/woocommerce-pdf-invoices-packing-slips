@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8 and WooCommerce 2.1
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,23 @@ Copy the files from `woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple
 
 Go to [wpovernight.com](https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/) to checkout more templates! These include templates with more tax details and product thumbnails. Need a custom templates? Contact us at support@wpovernight.com for more information.
 
+= My language is not included, how can I contribute? =
+
+This plugin is translation ready, which means that you can translate it using standard WordPress methods.
+
+1. Download POEdit at (http://www.poedit.net/download.php)
+2. Open POEdit
+3. File > New from POT
+4. Open wpo_wcpdf.pot (from `woocommerce-pdf-invoices-packing-slips/languages/`)
+5. A popup will ask you for your language
+6. This step is a bit tricky, configuring the plurals. Somehow the settings can't be copied from the pot. Go to Catalogue > Preferences. Then enter nplurals=2; plural=n != 1; in the custom expression field
+7. Enter the translations. invoice and packing-slip now have two translation fields, single & plural. Note that this is a filename, so replace spaces with a - just to be sure!
+8. Save as `wpo_wcpdf-xx_XX.po`, where you replace xx_XX with your language code & country code suffix (da_DK, pl_PL, de_DE etc.)
+
+= Fatal error: Allowed memory size of ######## bytes exhausted (tried to allocate ### bytes) =
+
+This usually only happens on batch actions. PDF creation is a memory intensive job, especially if it includes several pages with images. Go to WooCommerce > System Status to check your WP Memory Limit. We recommend setting it to 128mb or more.
+
 == Screenshots ==
 
 1. General settings page
@@ -65,6 +82,11 @@ Go to [wpovernight.com](https://wpovernight.com/downloads/woocommerce-pdf-invoic
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.1.3 =
+* Feature: PDF engine (dompdf) updated to 0.6.0 for better stability and utf-8 support.
+* Tweak: Local server path is used for header image for better compatibility with server settings.
+* Fix: several small bugs.
 
 = 1.1.2 =
 * Feature: Totals can now be called with simpler template functions

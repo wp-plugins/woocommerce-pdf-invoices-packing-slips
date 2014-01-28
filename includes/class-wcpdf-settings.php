@@ -659,7 +659,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			$template_paths = apply_filters( 'wpo_wcpdf_template_paths', $template_paths );
 
 			foreach ($template_paths as $template_source => $template_path) {
-				$dirs = glob( $template_path . '*' , GLOB_ONLYDIR);
+				$dirs = (array) glob( $template_path . '*' , GLOB_ONLYDIR);
 				
 				foreach ($dirs as $dir) {
 					if ( file_exists($dir."/invoice.php") && file_exists($dir."/packing-slip.php"))
