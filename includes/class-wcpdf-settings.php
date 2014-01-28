@@ -629,7 +629,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				if ( isset( $input[$key] ) ) {
 		
 					// Strip all HTML and PHP tags and properly handle quoted strings.
-					$output[$key] = strip_tags( stripslashes( $input[$key] ) );
+					$output[$key] = strip_tags( $input[$key] );
 					
 					// Or alternatively: don't strip HTML! :o)
 					//$output[$key] = stripslashes( $input[$key] );

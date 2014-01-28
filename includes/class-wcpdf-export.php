@@ -74,6 +74,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			// clean up special characters
 			$complete_pdf = utf8_decode(mb_convert_encoding($complete_pdf, 'HTML-ENTITIES', 'UTF-8'));
 
+			// Uncomment the lines below to see if the templates are readable by the plugin
+			// echo 'Template path: <pre>' . $this->template_path . '</pre><br/>';
+			// if (!file_exists($template_wrapper)) echo 'Template wrapper not found! <pre>'.$template_wrapper.'</pre><br/>';
+			// if (!file_exists($template)) echo 'Template not found! <pre>'.$template.'</pre><br/>';
 			// die($complete_pdf); //output html to browser for debug
 			
 			require_once( WooCommerce_PDF_Invoices::$plugin_path . "lib/dompdf/dompdf_config.inc.php" );  
