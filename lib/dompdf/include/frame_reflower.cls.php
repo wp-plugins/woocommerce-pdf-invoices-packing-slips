@@ -328,15 +328,16 @@ abstract class Frame_Reflower {
         if ( strtolower( $args[1] ) == 'counter' ) {
           // counter(name [,style])
           if ( isset( $args[5] ) ) {
-            $type = trim( $args[5] );
+            $type = trim( $args[1] );
           }
           else {
             $type = null;
           }
+
           $p = $this->_frame->lookup_counter_frame( $counter_id );
           
           $text .= $p->counter_value($counter_id, $type);
-          
+
         }
         else if ( strtolower( $args[1] ) == 'counters' ) {
           // counters(name, string [,style])
@@ -346,32 +347,34 @@ abstract class Frame_Reflower {
           else {
             $string = "";
           }
-          
+
           if ( isset( $args[7] ) ) {
             $type = trim( $args[7] );
           }
           else {
             $type = null;
           }
-          
+
           $p = $this->_frame->lookup_counter_frame($counter_id);
           $tmp = array();
           while ($p) {
-            // We only want to use the counter values when they actually increment the counter
-            if ( array_key_exists( $counter_id , $p->_counters ) ) {
+            // We only want to use the counter values when they actually increment the counter,
+            // elements that reset the counter, but do not increment it, are skipped.
+            // FIXME: Is this the best method of determining that an element's counter value should be displayed?
+            if ( array_key_exists( $counter_id , $p->_counters ) && $p->get_frame()->get_style()->counter_reset == 'none' ) {
               array_unshift( $tmp , $p->counter_value($counter_id, $type) );
             }
             $p = $p->lookup_counter_frame($counter_id);
             
           }
           $text .= implode( $string , $tmp );
-          
+
         }
         else {
           // countertops?
           continue;
         }
-        
+
       }
       else if ( isset($match[4]) && $match[4] !== "" ) {
         // String match
@@ -413,7 +416,7 @@ abstract class Frame_Reflower {
         }
       }
     }
-    
+
     return $text;
   }
   
@@ -424,10 +427,9 @@ abstract class Frame_Reflower {
     $frame = $this->_frame;
     $style = $frame->get_style();
     
-    // if the element was pushed to a new page use the saved counter value, otherwise use the CSS reset value
     if ( $style->counter_reset && ($reset = $style->counter_reset) !== "none" ) {
       $vars = preg_split('/\s+/', trim($reset), 2);
-      $frame->reset_counter( $vars[0] , ( isset($frame->_counters['__'.$vars[0]]) ? $frame->_counters['__'.$vars[0]] : ( isset($vars[1]) ? $vars[1] : 0 ) ) );
+      $frame->reset_counter($vars[0], isset($vars[1]) ? $vars[1] : 0);
     }
     
     if ( $style->counter_increment && ($increment = $style->counter_increment) !== "none" ) {
@@ -436,13 +438,6 @@ abstract class Frame_Reflower {
   
     if ( $style->content && !$frame->get_first_child() && $frame->get_node()->nodeName === "dompdf_generated" ) {
       $content = $this->_parse_content();
-      // add generated content to the font subset
-      // FIXME: This is currently too late because the font subset has already been generated.
-      //        See notes in issue #750.
-      if ( $frame->get_dompdf()->get_option("enable_font_subsetting") && $frame->get_dompdf()->get_canvas() instanceof CPDF_Adapter ) {
-        $frame->get_dompdf()->get_canvas()->register_string_subset($style->font_family, $content);
-      }
-      
       $node = $frame->get_node()->ownerDocument->createTextNode($content);
       
       $new_style = $style->get_stylesheet()->create_style();

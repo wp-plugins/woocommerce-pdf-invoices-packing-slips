@@ -79,6 +79,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			// if (!file_exists($template_wrapper)) echo 'Template wrapper not found! <pre>'.$template_wrapper.'</pre><br/>';
 			// if (!file_exists($template)) echo 'Template not found! <pre>'.$template.'</pre><br/>';
 			// die($complete_pdf); //output html to browser for debug
+			// NOTE! images will be loaded with the server path by default
+			// use the wpo_wcpdf_use_path filter (return false) to change this to http urls
 			
 			require_once( WooCommerce_PDF_Invoices::$plugin_path . "lib/dompdf/dompdf_config.inc.php" );  
 			$dompdf = new DOMPDF();
@@ -301,8 +303,17 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 						// Set the thumbnail id
 						$data['thumbnail_id'] = $this->get_thumbnail_id( $product->id );
 
-						// Set the thumbnail (full img tag)
-						$data['thumbnail'] = $product->get_image( 'shop_thumbnail', array( 'title' => '' ) );
+						// Set the thumbnail server path
+						$data['thumbnail_path'] = get_attached_file( $data['thumbnail_id'] );
+
+						// Thumbnail (full img tag)
+						if (apply_filters('wpo_wcpdf_use_path', true)) {
+							// load img with server path by default
+							$data['thumbnail'] = sprintf('<img width="90" height="90" src="%s" class="attachment-shop_thumbnail wp-post-image">', $data['thumbnail_path']);
+						} else {
+							// load img with http url when filtered
+							$data['thumbnail'] = $product->get_image( 'shop_thumbnail', array( 'title' => '' ) );
+						}
 						
 						// Set the single price (turned off to use more consistent calculated price)
 						// $data['single_price'] = woocommerce_price ( $product->get_price() );

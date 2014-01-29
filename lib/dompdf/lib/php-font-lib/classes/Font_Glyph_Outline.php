@@ -7,6 +7,9 @@
  * @version $Id: Font_Table_glyf.php 46 2012-04-02 20:22:38Z fabien.menager $
  */
 
+require_once dirname(__FILE__) . "/Font_Glyph_Outline_Simple.php";
+require_once dirname(__FILE__) . "/Font_Glyph_Outline_Composite.php";
+
 /**
  * `glyf` font table.
  *
@@ -102,6 +105,3 @@ class Font_Glyph_Outline extends Font_Binary_Stream {
     return array();
   }
 }
-
-require_once dirname(__FILE__) . "/Font_Glyph_Outline_Simple.php";
-require_once dirname(__FILE__) . "/Font_Glyph_Outline_Composite.php";
