@@ -34,8 +34,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			$this->template_path = $this->template_settings['template_path'];
 
-			add_action('wp_ajax_generate_wpo_wcpdf', array($this, 'generate_pdf_ajax'));
-			add_filter(  'woocommerce_email_attachments', array( $this, 'attach_pdf_to_email' ), 99, 3);
+			add_action( 'wp_ajax_generate_wpo_wcpdf', array($this, 'generate_pdf_ajax' ));
+			add_filter( 'woocommerce_email_attachments', array( $this, 'attach_pdf_to_email' ), 99, 3);
 		}
 		
 		/**
@@ -47,6 +47,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			$output_html = array();
 			foreach ($order_ids as $order_id) {
+				$this->add_invoice_number( $order_id );
 				$this->order = new WC_Order( $order_id );
 				$template = $this->template_path . '/' . $template_type . '.php';
 
@@ -249,6 +250,34 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			return $attachments;
+		}
+
+		public function add_invoice_number( $order_id ) {
+			// Based on code from WooCommerce Sequential Order Numbers
+			global $wpdb;
+
+			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
+
+			// add invoive number if it doesn't exist
+			if ( $invoice_number == "" ) {
+				// attempt the query up to 3 times for a much higher success rate if it fails (due to Deadlock)	
+				// this seems to me like the safest way to avoid order number clashes
+				$success = false;
+				for ( $i = 0; $i < 3 && ! $success; $i++ ) {
+					// Get maximum invoice number in the DB
+					$max_invoice_number = $wpdb->get_var( 'SELECT max(cast(meta_value as UNSIGNED)) from ' . $wpdb->postmeta . ' where meta_key="_wcpdf_invoice_number"' );
+
+					if ($max_invoice_number == '') {
+						$invoice_number = $order_id;
+					} else {
+						$invoice_number = $max_invoice_number+1;
+					}
+
+					$success = $wpdb->query( 'INSERT INTO ' . $wpdb->postmeta . ' (post_id,meta_key,meta_value) VALUES (' . $order_id . ',"_wcpdf_invoice_number", '.$invoice_number.')' );
+				}
+			}
+
+			return $invoice_number;
 		}
 
 		/**
