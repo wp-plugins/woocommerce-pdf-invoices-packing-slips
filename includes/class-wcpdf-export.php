@@ -41,7 +41,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		/**
 		 * Generate the template output
 		 */
-		public function generate_pdf( $template_type, $order_ids ) {
+		public function process_template( $template_type, $order_ids ) {
 			$this->template_type = $template_type;
 			$this->order_ids = $order_ids;
 
@@ -49,6 +49,11 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			foreach ($order_ids as $order_id) {
 				$this->order = new WC_Order( $order_id );
 				$template = $this->template_path . '/' . $template_type . '.php';
+
+				if (!file_exists($template)) {
+					die('Template not found! Check if the following file exists: <pre>'.$template.'</pre><br/>');
+				}
+
 				$output_html[$order_id] = $this->get_template($template);
 
 				// Wipe post from cache
@@ -59,32 +64,43 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			// Try to clean up a bit of memory
 			unset($this->order);
 
+			$print_script = "<script language=javascript>window.onload = function(){ window.print(); };</script>";
 			$page_break = "\n<div style=\"page-break-before: always;\"></div>\n";
-			$this->output_body = implode($page_break, $output_html);
+
+
+			if (apply_filters('wpo_wcpdf_output_html', false, $template_type) && apply_filters('wpo_wcpdf_print_html', false, $template_type)) {
+				$this->output_body = $print_script . implode($page_break, $output_html);
+			} else {
+				$this->output_body = implode($page_break, $output_html);
+			}
 
 			// Try to clean up a bit of memory
 			unset($output_html);
 
 			$template_wrapper = $this->template_path . '/html-document-wrapper.php';
-			$complete_pdf = $this->get_template($template_wrapper);
+
+			if (!file_exists($template_wrapper)) {
+				die('Template wrapper not found! Check if the following file exists: <pre>'.$template_wrapper.'</pre><br/>');
+			}		
+
+			$complete_document = $this->get_template($template_wrapper);
 
 			// Try to clean up a bit of memory
 			unset($this->output_body);
 			
 			// clean up special characters
-			$complete_pdf = utf8_decode(mb_convert_encoding($complete_pdf, 'HTML-ENTITIES', 'UTF-8'));
+			$complete_document = utf8_decode(mb_convert_encoding($complete_document, 'HTML-ENTITIES', 'UTF-8'));
 
-			// Uncomment the lines below to see if the templates are readable by the plugin
-			// echo 'Template path: <pre>' . $this->template_path . '</pre><br/>';
-			// if (!file_exists($template_wrapper)) echo 'Template wrapper not found! <pre>'.$template_wrapper.'</pre><br/>';
-			// if (!file_exists($template)) echo 'Template not found! <pre>'.$template.'</pre><br/>';
-			// die($complete_pdf); //output html to browser for debug
-			// NOTE! images will be loaded with the server path by default
-			// use the wpo_wcpdf_use_path filter (return false) to change this to http urls
-			
+			return $complete_document;
+		}
+
+		/**
+		 * Create & render DOMPDF object
+		 */
+		public function generate_pdf( $template_type, $order_ids )	{
 			require_once( WooCommerce_PDF_Invoices::$plugin_path . "lib/dompdf/dompdf_config.inc.php" );  
 			$dompdf = new DOMPDF();
-			$dompdf->load_html($complete_pdf);
+			$dompdf->load_html($this->process_template( $template_type, $order_ids ));
 			$dompdf->set_paper($this->template_settings['paper_size'], 'portrait');
 			$dompdf->render();
 
@@ -172,8 +188,15 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$filename = apply_filters( 'wpo_wcpdf_bulk_filename', $filename, $order_ids, $template_name );
 			
 			// Generate the output
-			//$this->stream_pdf( $template_type, $order_ids, $filename );
+			// $this->stream_pdf( $template_type, $order_ids, $filename );
 
+			if (apply_filters('wpo_wcpdf_output_html', false, $template_type)) {
+				// Output html to browser for debug
+				// NOTE! images will be loaded with the server path by default
+				// use the wpo_wcpdf_use_path filter (return false) to change this to http urls
+				die($this->process_template( $template_type, $order_ids ));
+			}
+		
 			$invoice = $this->get_pdf( $template_type, $order_ids );
 
 			// Get output setting
@@ -395,8 +418,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 				$tax_rates = implode(' ,', $tax_rates );
 			} else {
-				// Backwards compatibility: calulate tax from line items
-				$tax_rates = round( ($line_tax / $line_total)*100, 1 ).'%';
+				// Backwards compatibility: calculate tax from line items
+				if ( $line_total != 0) {
+					$tax_rates = round( ($line_tax / $line_total)*100, 1 ).'%';
+				} else {
+					$tax_rates = '-';
+				}
 			}
 			
 			return $tax_rates;
