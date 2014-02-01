@@ -47,7 +47,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			$output_html = array();
 			foreach ($order_ids as $order_id) {
-				$this->add_invoice_number( $order_id );
 				$this->order = new WC_Order( $order_id );
 				$template = $this->template_path . '/' . $template_type . '.php';
 
@@ -147,6 +146,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			$order_ids = (array) explode('x',$_GET['order_ids']);
+			// Process oldest first: reverse $order_ids array
+			$order_ids = array_reverse($order_ids);
 
 			// User call from my-account page
 			if ( isset( $_GET['my-account'] ) ) {
@@ -190,6 +191,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			
 			// Generate the output
 			// $this->stream_pdf( $template_type, $order_ids, $filename );
+
+			// die($this->process_template( $template_type, $order_ids )); // or use the filter switch below!
 
 			if (apply_filters('wpo_wcpdf_output_html', false, $template_type)) {
 				// Output html to browser for debug
@@ -252,14 +255,14 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			return $attachments;
 		}
 
-		public function add_invoice_number( $order_id ) {
+		public function get_invoice_number( $order_id ) {
 			// Based on code from WooCommerce Sequential Order Numbers
 			global $wpdb;
 
 			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
 
-			// add invoive number if it doesn't exist
-			if ( $invoice_number == "" ) {
+			// add invoice number if it doesn't exist
+			if ( empty($invoice_number) || !isset($invoice_number) ) {
 				// attempt the query up to 3 times for a much higher success rate if it fails (due to Deadlock)	
 				// this seems to me like the safest way to avoid order number clashes
 				$success = false;
@@ -275,6 +278,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 					$success = $wpdb->query( 'INSERT INTO ' . $wpdb->postmeta . ' (post_id,meta_key,meta_value) VALUES (' . $order_id . ',"_wcpdf_invoice_number", '.$invoice_number.')' );
 				}
+				// die($invoice_number);
 			}
 
 			return $invoice_number;
@@ -323,14 +327,14 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					// Set item quantity
 					$data['quantity'] = $item['qty'];
 
-					// Set the subtotal for the number of products
-					$data['line_total'] = $item['line_total'];
-					$data['line_tax'] = $item['line_tax'];
+					// Set the line total (=before discount)
+					$data['line_total'] = $this->wc_price( $item['line_total'] );
+					$data['line_tax'] = $this->wc_price( $item['line_tax'] );
 					$data['tax_rates'] = $this->get_tax_rate( $item['tax_class'], $item['line_total'], $item['line_tax'] );
 					
-					// Set the final subtotal for all products
-					$data['line_subtotal'] = $item['line_subtotal'];
-					$data['line_subtotal_tax'] = $item['line_subtotal_tax'];
+					// Set the line subtotal
+					$data['line_subtotal'] = $this->wc_price( $item['line_subtotal'] );
+					$data['line_subtotal_tax'] = $this->wc_price( $item['line_subtotal_tax'] );
 					$data['ex_price'] = $this->get_formatted_item_price ( $item, 'total', 'excl' );
 					$data['price'] = $this->get_formatted_item_price ( $item, 'total' );
 
@@ -405,25 +409,30 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			if ( ! isset( $item['line_subtotal'] ) || ! isset( $item['line_subtotal_tax'] ) ) 
 				return;
 
-			if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 ) {
-				// WC 2.1 or newer is used
-				if ( $tax_display == 'excl' ) {
-					$item_price = wc_price( ($this->order->get_line_subtotal( $item )) / $divider, array( 'currency' => $this->order->get_order_currency() ) );
-				} else {
-					$item_price = wc_price( ($this->order->get_line_subtotal( $item, true )) / $divider, array('currency' => $this->order->get_order_currency()) );
-				}
+			if ( $tax_display == 'excl' ) {
+				$item_price = $this->wc_price( ($this->order->get_line_subtotal( $item )) / $divider );
 			} else {
-				// Backwards compatibility
-				if ( $tax_display == 'excl' ) {
-					$item_price = woocommerce_price( ($this->order->get_line_subtotal( $item )) / $divider );
-				} else {
-					$item_price = woocommerce_price( ($this->order->get_line_subtotal( $item, true )) / $divider );
-				}
+				$item_price = $this->wc_price( ($this->order->get_line_subtotal( $item, true )) / $divider );
 			}
-
 
 			return $item_price;
 		}
+
+		/**
+		 * wrapper for wc2.1 depricated price function
+		 */
+		public function wc_price( $price, $args = array() ) {
+			if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 ) {
+				// WC 2.1 or newer is used
+				$args['currency'] = $this->order->get_order_currency();
+				$formatted_price = wc_price( $price, $args );
+			} else {
+				$formatted_price = woocommerce_price( $price );
+			}
+
+			return $formatted_price;
+		}
+
 		/**
 		 * Get the tax rates/percentages for a given tax class
 		 * @param  string $tax_class tax class slug

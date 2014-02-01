@@ -84,8 +84,9 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 
 == Changelog ==
 
-= 1.1.7 =
-* Feature: unique & sequential invoice number is created when an invoice is generated
+= 1.2.0 =
+* Feature: Sequential invoice numbers (set upon invoice creation).
+* Feature: Invoice date (set upon invoice creation).
 
 = 1.1.6 =
 * Feature: Hungarian translations added - thanks Joseph!

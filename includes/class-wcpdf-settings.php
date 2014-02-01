@@ -316,6 +316,39 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				)
 			);
 
+			add_settings_field(
+				'display_number',
+				__( 'Number to display on invoice', 'wpo_wcpdf' ),
+				array( &$this, 'select_element_callback' ),
+				$option,
+				'template_settings',
+				array(
+					'menu'				=> $option,
+					'id'				=> 'display_number',
+					'options' 			=> array(
+						'order_number'	=> __( 'WooCommerce order number' , 'wpo_wcpdf' ),
+						'invoice_number'=> __( 'Built-in sequential invoice number' , 'wpo_wcpdf' ),
+					),
+					'description'		=> __( 'If you are using the WooCommerce Sequential Order Numbers plugin, select the WooCommerce order number', 'wpo_wcpdf' ),
+				)
+			);
+
+			add_settings_field(
+				'display_date',
+				__( 'Date to display on invoice', 'wpo_wcpdf' ),
+				array( &$this, 'select_element_callback' ),
+				$option,
+				'template_settings',
+				array(
+					'menu'				=> $option,
+					'id'				=> 'display_date',
+					'options' 			=> array(
+						'order_date'	=> __( 'Order date' , 'wpo_wcpdf' ),
+						'invoice_date'	=> __( 'Invoice date' , 'wpo_wcpdf' ),
+					),
+				)
+			);
+
 			// Section.
 			add_settings_section(
 				'extra_template_fields',

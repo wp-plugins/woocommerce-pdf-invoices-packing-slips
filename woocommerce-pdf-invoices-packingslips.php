@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.1.7
+ * Version: 1.2.0
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -265,10 +265,10 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 
 
 		/**
-		 * Return/Show order number 
+		 * Return/Show invoice number 
 		 */
 		public function get_invoice_number() {
-			$invoice_number = get_post_meta( $this->export->order->id, '_wcpdf_invoice_number', true );
+			$invoice_number = $this->export->get_invoice_number( $this->export->order->id );
 			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number );
 		}
 		public function invoice_number() {
@@ -276,27 +276,63 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		}
 
 		/**
-		 * Return/Show order number
+		 * Return/Show order number (or invoice number)
 		 */
 		public function get_order_number() {
-			// Trim the hash to have a clean number but still 
-			// support any filters that were applied before.
-			$order_number = ltrim($this->export->order->get_order_number(), '#');
-			return $order_number;
+			$display_number = isset($this->settings->template_settings['display_number'])?$this->settings->template_settings['display_number']:'order_number';
+
+			if ( $display_number == 'invoice_number' ) {
+				$number = $this->get_invoice_number();
+			} else {
+				// Trim the hash to have a clean number but still 
+				// support any filters that were applied before.
+				$number = ltrim($this->export->order->get_order_number(), '#');				
+			}
+
+			return $number;
 		}
 		public function order_number() {
 			echo $this->get_order_number();
-		}	
+		}
+
 		/**
 		 * Return/Show the order date
 		 */
 		public function get_order_date() {
-			return apply_filters( 'wpo_wcpdf_order_date', date_i18n( get_option( 'date_format' ), strtotime( $this->export->order->order_date ) ) );
+			$display_date = isset($this->settings->template_settings['display_date'])?$this->settings->template_settings['display_date']:'order_date';
+
+			if ( $display_date == 'order_date' ) {
+				$date = date_i18n( get_option( 'date_format' ), strtotime( $this->export->order->order_date ) );
+			} else {
+				$date = $this->get_invoice_date();
+			}
+
+			return apply_filters( 'wpo_wcpdf_order_date', $date );
 		}
 		public function order_date() {
 			echo $this->get_order_date();
 		}
 	
+		/**
+		 * Return/Show the invoice date
+		 */
+		public function get_invoice_date() {
+			$invoice_date = get_post_meta($this->export->order->id,'_wcpdf_invoice_date',true);
+
+			// add invoice date if it doesn't exist
+			if ( empty($invoice_date) || !isset($invoice_date) ) {
+				$invoice_date = current_time('mysql');
+				update_post_meta( $this->export->order->id, '_wcpdf_invoice_date', $invoice_date );
+			}
+
+			$formatted_invoice_date = date_i18n( get_option( 'date_format' ), strtotime( $invoice_date ) );
+
+			return apply_filters( 'wpo_wcpdf_invoice_date', $formatted_invoice_date, $invoice_date );
+		}
+		public function invoice_date() {
+			echo $this->get_invoice_date();
+		}
+
 		/**
 		 * Return the order items
 		 */
