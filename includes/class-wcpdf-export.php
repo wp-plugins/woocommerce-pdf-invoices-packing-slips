@@ -271,7 +271,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					$max_invoice_number = $wpdb->get_var( 'SELECT max(cast(meta_value as UNSIGNED)) from ' . $wpdb->postmeta . ' where meta_key="_wcpdf_invoice_number"' );
 
 					if ($max_invoice_number == '') {
-						$invoice_number = $order_id;
+						// First time! Use order number as starting point.
+						$order_number = ltrim($this->order->get_order_number(), '#');
+						$invoice_number = $order_number;
 					} else {
 						$invoice_number = $max_invoice_number+1;
 					}

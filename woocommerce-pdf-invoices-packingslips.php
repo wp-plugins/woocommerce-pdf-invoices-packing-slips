@@ -263,56 +263,54 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			echo $this->get_shipping_method();
 		}
 
-
-		/**
-		 * Return/Show invoice number 
-		 */
-		public function get_invoice_number() {
-			$invoice_number = $this->export->get_invoice_number( $this->export->order->id );
-			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number );
-		}
-		public function invoice_number() {
-			echo $this->get_invoice_number();
-		}
-
 		/**
 		 * Return/Show order number (or invoice number)
 		 */
 		public function get_order_number() {
-			$display_number = isset($this->settings->template_settings['display_number'])?$this->settings->template_settings['display_number']:'order_number';
-
-			if ( $display_number == 'invoice_number' ) {
-				$number = $this->get_invoice_number();
-			} else {
-				// Trim the hash to have a clean number but still 
-				// support any filters that were applied before.
-				$number = ltrim($this->export->order->get_order_number(), '#');				
-			}
-
-			return $number;
+			// Trim the hash to have a clean number but still 
+			// support any filters that were applied before.
+			$order_number = ltrim($this->export->order->get_order_number(), '#');
+			return apply_filters( 'wpo_wcpdf_order_number', $order_number);
 		}
 		public function order_number() {
-			echo $this->get_order_number();
+			// Check for setting: not very semantical but helps a lot for backwards compatibiity!
+			$display_number = isset($this->settings->template_settings['display_number'])?$this->settings->template_settings['display_number']:'order_number';
+			if ( $display_number == 'invoice_number' ) {
+				echo $this->get_invoice_number();
+			} else {
+				echo $this->get_order_number();
+			}
 		}
 
 		/**
 		 * Return/Show the order date
 		 */
 		public function get_order_date() {
-			$display_date = isset($this->settings->template_settings['display_date'])?$this->settings->template_settings['display_date']:'order_date';
-
-			if ( $display_date == 'order_date' ) {
-				$date = date_i18n( get_option( 'date_format' ), strtotime( $this->export->order->order_date ) );
-			} else {
-				$date = $this->get_invoice_date();
-			}
-
+			$date = date_i18n( get_option( 'date_format' ), strtotime( $this->export->order->order_date ) );
 			return apply_filters( 'wpo_wcpdf_order_date', $date );
 		}
 		public function order_date() {
-			echo $this->get_order_date();
+			// Check for setting: not very semantical but helps a lot for backwards compatibiity!
+			$display_date = isset($this->settings->template_settings['display_date'])?$this->settings->template_settings['display_date']:'order_date';
+
+			if ( $display_date == 'order_date' ) {
+				echo $this->get_order_date();
+			} else {
+				echo $this->get_invoice_date();
+			}
 		}
-	
+
+		/**
+		 * Return/Show invoice number 
+		 */
+		public function get_invoice_number() {
+			$invoice_number = $this->export->get_invoice_number( $this->export->order->id );
+			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->get_order_number(), $this->export->order->id, $this->get_order_date() );
+		}
+		public function invoice_number() {
+			echo $this->get_invoice_number();
+		}
+
 		/**
 		 * Return/Show the invoice date
 		 */

@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8 and WooCommerce 2.1
-Stable tag: 1.1.6
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,22 @@ This plugin is translation ready, which means that you can translate it using st
 6. This step is a bit tricky, configuring the plurals. Somehow the settings can't be copied from the pot. Go to Catalogue > Preferences. Then enter nplurals=2; plural=n != 1; in the custom expression field
 7. Enter the translations. invoice and packing-slip now have two translation fields, single & plural. Note that this is a filename, so replace spaces with a - just to be sure!
 8. Save as `wpo_wcpdf-xx_XX.po`, where you replace xx_XX with your language code & country code suffix (da_DK, pl_PL, de_DE etc.)
+
+= How to I add a prefix, suffix or offset to the invoice number? =
+
+You can do this via a filter in your theme's `functions.php` (Some themes have a "custom functions" area in the settings).
+
+`
+add_filter( 'wpo_wcpdf_invoice_number', 'wpo_wcpdf_invoice_number', 10, 4 );
+
+function wpo_wcpdf_invoice_number( $invoice_number, $order_number, $order_id, $order_date ) {
+	$prefix = 'ABC';
+	$order_year = date_i18n( 'Y', strtotime( $order_date ) );
+	$offset = 10000;
+	$invoice_number = $prefix . $order_year . ($offset + $invoice_number);
+	return $invoice_number;
+}
+` 
 
 = Fatal error: Allowed memory size of ######## bytes exhausted (tried to allocate ### bytes) =
 
