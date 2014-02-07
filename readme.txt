@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8 and WooCommerce 2.1
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,8 +27,6 @@ In addition to a number of default settings (including a custom header/logo) and
 * Modify shop data / footer / disclaimer etc. on the invoices & packing slips
 * Select paper size (Letter or A4)
 * Translation ready
-
-If you want more control over the invoice numbers, we recommend that you also install the (free) [WooCommerce Sequential Order Numbers plugin](http://wordpress.org/plugins/woocommerce-sequential-order-numbers/)
 
 == Installation ==
 
@@ -100,6 +98,9 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix: shipping & fees functions didn't output correctly with the tax set to 'incl'
 
 = 1.2.0 =
 * Feature: Sequential invoice numbers (set upon invoice creation).
