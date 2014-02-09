@@ -112,4 +112,9 @@
   array (
     'normal' => DOMPDF_FONT_DIR . 'ca62b8dbf47b24df65c291a7b33ced62',
   ),
+  'roboto slab' => 
+  array (
+    'normal' => DOMPDF_FONT_DIR . '5ffc7e496d2efff1121d16976e8578be',
+    'bold' => DOMPDF_FONT_DIR . 'fa16cc67cfbb3d1319f7702b1bb90c84',
+  ),
 ) ?>

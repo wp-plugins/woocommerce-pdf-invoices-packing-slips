@@ -5,11 +5,11 @@
  * @author  Benj Carson <benjcarson@digitaljunkies.ca>
  * @author  Helmut Tischer <htischer@weihenstephan.org>
  * @author  Fabien Ménager <fabien.menager@gmail.com>
+ * @autho   Brian Sweeney <eclecticgeek@gmail.com>
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
-//error_reporting(E_STRICT | E_ALL | E_DEPRECATED);
-//ini_set("display_errors", 1);
+if ( class_exists( 'DOMPDF' , false ) ) { return; }
 
 PHP_VERSION >= 5.0 or die("DOMPDF requires PHP 5.0+");
 
@@ -55,7 +55,7 @@ require_once(DOMPDF_INC_DIR . "/functions.inc.php");
  * Username and password used by the configuration utility in www/
  */
 def("DOMPDF_ADMIN_USERNAME", "user");
-def("DOMPDF_ADMIN_PASSWORD", "wpovernight");
+def("DOMPDF_ADMIN_PASSWORD", "password");
 
 /**
  * The location of the DOMPDF font directory
@@ -122,13 +122,13 @@ def("DOMPDF_CHROOT", realpath(DOMPDF_DIR));
  * When set to true the PDF backend must be set to "CPDF" and fonts must be
  * loaded via load_font.php.
  *
- * When enabled, dompdf can support all Unicode glyphs.  Any glyphs used in a
+ * When enabled, dompdf can support all Unicode glyphs. Any glyphs used in a
  * document must be present in your fonts, however.
  */
 def("DOMPDF_UNICODE_ENABLED", true);
 
 /**
- * Whether to make font subsetting or not.
+ * Whether to enable font subsetting or not.
  */
 def("DOMPDF_ENABLE_FONTSUBSETTING", false);
 
@@ -136,8 +136,8 @@ def("DOMPDF_ENABLE_FONTSUBSETTING", false);
  * The PDF rendering backend to use
  *
  * Valid settings are 'PDFLib', 'CPDF' (the bundled R&OS PDF class), 'GD' and
- * 'auto'.  'auto' will look for PDFLib and use it if found, or if not it will
- * fall back on CPDF.  'GD' renders PDFs to graphic files.  {@link
+ * 'auto'. 'auto' will look for PDFLib and use it if found, or if not it will
+ * fall back on CPDF. 'GD' renders PDFs to graphic files. {@link
  * Canvas_Factory} ultimately determines which rendering class to instantiate
  * based on this setting.
  *
@@ -146,15 +146,15 @@ def("DOMPDF_ENABLE_FONTSUBSETTING", false);
  * image and font support, etc.) differ between backends.  Please see
  * {@link PDFLib_Adapter} for more information on the PDFLib backend
  * and {@link CPDF_Adapter} and lib/class.pdf.php for more information
- * on CPDF.  Also see the documentation for each backend at the links
+ * on CPDF. Also see the documentation for each backend at the links
  * below.
  *
  * The GD rendering backend is a little different than PDFLib and
- * CPDF.  Several features of CPDF and PDFLib are not supported or do
+ * CPDF. Several features of CPDF and PDFLib are not supported or do
  * not make any sense when creating image files.  For example,
  * multiple pages are not supported, nor are PDF 'objects'.  Have a
- * look at {@link GD_Adapter} for more information.  GD support is new
- * and experimental, so use it at your own risk.
+ * look at {@link GD_Adapter} for more information.  GD support is
+ * experimental, so use it at your own risk.
  *
  * @link http://www.pdflib.com
  * @link http://www.ros.co.nz/pdf
@@ -195,7 +195,7 @@ def("DOMPDF_DEFAULT_MEDIA_TYPE", "screen");
  *
  * @see CPDF_Adapter::PAPER_SIZES for valid sizes
  */
-def("DOMPDF_DEFAULT_PAPER_SIZE", "a4");
+def("DOMPDF_DEFAULT_PAPER_SIZE", "letter");
 
 /**
  * The default font family
@@ -203,7 +203,7 @@ def("DOMPDF_DEFAULT_PAPER_SIZE", "a4");
  * Used if no suitable fonts can be found. This must exist in the font folder.
  * @var string
  */
-def("DOMPDF_DEFAULT_FONT", "sans-serif");
+def("DOMPDF_DEFAULT_FONT", "serif");
 
 /**
  * Image DPI setting
@@ -218,7 +218,7 @@ def("DOMPDF_DEFAULT_FONT", "sans-serif");
  *
  * For the purposes of DOMPDF, pixels per inch (PPI) = dots per inch (DPI).
  * If a size in html is given as px (or without unit as image size),
- * this tells the corresponding size in pt.
+ * this tells the corresponding size in pt at 72 DPI.
  * This adjusts the relative sizes to be similar to the rendering of the
  * html page in a reference browser.
  *
@@ -281,7 +281,7 @@ def("DOMPDF_ENABLE_JAVASCRIPT", true);
  *
  * @var bool
  */
-def("DOMPDF_ENABLE_REMOTE", true);
+def("DOMPDF_ENABLE_REMOTE", false);
 
 /**
  * The debug output log
@@ -310,7 +310,7 @@ def("DOMPDF_ENABLE_CSS_FLOAT", false);
 def("DOMPDF_ENABLE_AUTOLOAD", true);
 
 /**
- * Prepend the DOMPDF autoload function the spl_autoload stack
+ * Prepend the DOMPDF autoload function to the spl_autoload stack
  *
  * @var bool
  */
@@ -329,7 +329,7 @@ require_once(DOMPDF_LIB_DIR . "/html5lib/Parser.php");
  */
 if (DOMPDF_ENABLE_AUTOLOAD) {
   require_once(DOMPDF_INC_DIR . "/autoload.inc.php");
-  require_once(DOMPDF_LIB_DIR . "/php-font-lib/classes/font.cls.php");
+  require_once(DOMPDF_LIB_DIR . "/php-font-lib/classes/Font.php");
 }
 
 /**

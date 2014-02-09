@@ -98,10 +98,13 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 * Create & render DOMPDF object
 		 */
 		public function generate_pdf( $template_type, $order_ids )	{
+			$paper_size = apply_filters( 'wpo_wcpdf_paper_format', $this->template_settings['paper_size'], $template_type );
+			$paper_orientation = apply_filters( 'wpo_wcpdf_paper_orientation', 'portrait', $template_type);
+
 			require_once( WooCommerce_PDF_Invoices::$plugin_path . "lib/dompdf/dompdf_config.inc.php" );  
 			$dompdf = new DOMPDF();
 			$dompdf->load_html($this->process_template( $template_type, $order_ids ));
-			$dompdf->set_paper($this->template_settings['paper_size'], 'portrait');
+			$dompdf->set_paper( $paper_size, $paper_orientation );
 			$dompdf->render();
 
 			// Try to clean up a bit of memory
