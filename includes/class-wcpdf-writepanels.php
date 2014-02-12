@@ -91,10 +91,12 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		public function my_account_pdf_link( $actions, $order ) {
 			$pdf_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order->id . '&my-account'), 'generate_wpo_wcpdf' );
 
-			$actions['invoice'] = array(
-				'url'  => $pdf_url,
-				'name' => __( 'Download invoice (PDF)', 'wpo_wcpdf' )
-			);
+			if (get_post_meta($order->id,'_wcpdf_invoice_number',true)) {
+				$actions['invoice'] = array(
+					'url'  => $pdf_url,
+					'name' => __( 'Download invoice (PDF)', 'wpo_wcpdf' )
+				);				
+			}
 
 			return $actions;
 		}
