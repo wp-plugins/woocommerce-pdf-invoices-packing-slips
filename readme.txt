@@ -101,7 +101,7 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 
 = 1.2.3 =
 * Feature: Manually edit invoice number on the edit order screen
-* Feature: Set the first (/next) invoice number can on the settings screen
+* Feature: Set the first (/next) invoice number on the settings screen
 * Fix: Bug where invoice number would be generated twice due to slow database calls
 * Fix: php strict warnings
 
