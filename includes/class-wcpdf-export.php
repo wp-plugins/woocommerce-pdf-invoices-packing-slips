@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PDF Export class
  */
@@ -15,6 +14,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 		public $order;
 		public $template_type;
+		public $invoice_number;
 		public $order_id;
 		public $output_body;
 
@@ -259,32 +259,38 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		}
 
 		public function get_invoice_number( $order_id ) {
-			// Based on code from WooCommerce Sequential Order Numbers
-			global $wpdb;
-
+			// get invoice number from post meta
 			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
+
+			// double check with local variable
+			if (!empty($this->invoice_number) ) {
+				$invoice_number = $this->invoice_number;
+			}
 
 			// add invoice number if it doesn't exist
 			if ( empty($invoice_number) || !isset($invoice_number) ) {
-				// attempt the query up to 3 times for a much higher success rate if it fails (due to Deadlock)	
-				// this seems to me like the safest way to avoid order number clashes
-				$success = false;
-				for ( $i = 0; $i < 3 && ! $success; $i++ ) {
-					// Get maximum invoice number in the DB
-					$max_invoice_number = $wpdb->get_var( 'SELECT max(cast(meta_value as UNSIGNED)) from ' . $wpdb->postmeta . ' where meta_key="_wcpdf_invoice_number"' );
+				$next_invoice_number = $this->template_settings['next_invoice_number'];
 
-					if ($max_invoice_number == '') {
-						// First time! Use order number as starting point.
-						$order_number = ltrim($this->order->get_order_number(), '#');
-						$invoice_number = $order_number;
-					} else {
-						$invoice_number = $max_invoice_number+1;
-					}
-
-					$success = $wpdb->query( 'INSERT INTO ' . $wpdb->postmeta . ' (post_id,meta_key,meta_value) VALUES (' . $order_id . ',"_wcpdf_invoice_number", '.$invoice_number.')' );
+				if ( empty($next_invoice_number) ) {
+					// First time! Use order number as starting point.
+					$order_number = ltrim($this->order->get_order_number(), '#');
+					$invoice_number = $order_number;
+				} else {
+					$invoice_number = $next_invoice_number;
 				}
-				// die($invoice_number);
+
+				// set invoice number in object to double check (slow databases)
+				$this->invoice_number = $invoice_number;
 			}
+
+			update_post_meta($order_id, '_wcpdf_invoice_number', $invoice_number);
+
+			// increase next_order_number
+			$template_settings = get_option('wpo_wcpdf_template_settings');
+			$template_settings['next_invoice_number'] = $invoice_number+1;
+			update_option( 'wpo_wcpdf_template_settings', $template_settings );
+
+			// die($invoice_number);
 
 			return $invoice_number;
 		}

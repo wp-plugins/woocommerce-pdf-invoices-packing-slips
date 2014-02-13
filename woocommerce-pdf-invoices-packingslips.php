@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.2.2
+ * Version: 1.2.3
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -273,31 +273,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			return apply_filters( 'wpo_wcpdf_order_number', $order_number);
 		}
 		public function order_number() {
-			// Check for setting: not very semantical but helps a lot for backwards compatibiity!
-			$display_number = isset($this->settings->template_settings['display_number'])?$this->settings->template_settings['display_number']:'order_number';
-			if ( $display_number == 'invoice_number' ) {
-				echo $this->get_invoice_number();
-			} else {
-				echo $this->get_order_number();
-			}
-		}
-
-		/**
-		 * Return/Show the order date
-		 */
-		public function get_order_date() {
-			$date = date_i18n( get_option( 'date_format' ), strtotime( $this->export->order->order_date ) );
-			return apply_filters( 'wpo_wcpdf_order_date', $date );
-		}
-		public function order_date() {
-			// Check for setting: not very semantical but helps a lot for backwards compatibiity!
-			$display_date = isset($this->settings->template_settings['display_date'])?$this->settings->template_settings['display_date']:'order_date';
-
-			if ( $display_date == 'order_date' ) {
-				echo $this->get_order_date();
-			} else {
-				echo $this->get_invoice_date();
-			}
+			echo $this->get_order_number();
 		}
 
 		/**
@@ -309,6 +285,17 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		}
 		public function invoice_number() {
 			echo $this->get_invoice_number();
+		}
+
+		/**
+		 * Return/Show the order date
+		 */
+		public function get_order_date() {
+			$date = date_i18n( get_option( 'date_format' ), strtotime( $this->export->order->order_date ) );
+			return apply_filters( 'wpo_wcpdf_order_date', $date );
+		}
+		public function order_date() {
+			echo $this->get_order_date();
 		}
 
 		/**

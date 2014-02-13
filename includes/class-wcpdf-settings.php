@@ -7,9 +7,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 
 	class WooCommerce_PDF_Invoices_Settings {
 	
-		public static $options_page_hook;
-		public static $general_settings;
-		public static $template_settings;
+		public $options_page_hook;
+		public $general_settings;
+		public $template_settings;
 
 		public function __construct() {
 			add_action( 'admin_menu', array( &$this, 'menu' ) ); // Add menu.
@@ -334,6 +334,21 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			);
 
 			add_settings_field(
+				'next_invoice_number',
+				__( 'Next invoice number', 'wpo_wcpdf' ),
+				array( &$this, 'text_element_callback' ),
+				$option,
+				'template_settings',
+				array(
+					'menu'			=> $option,
+					'id'			=> 'next_invoice_number',
+					'size'			=> '10',
+					'description'		=> __( 'This is the number that will be used on the next invoice that is created. By default, numbering starts from the WooCommerce Order Number of the first invoice that is created and increases for every new invoice. Note that if you override this and set it lower than the highest (PDF) invoice number, this could create double invoice numbers!', 'wpo_wcpdf' ),
+				)
+			);
+
+
+			add_settings_field(
 				'display_date',
 				__( 'Date to display on invoice', 'wpo_wcpdf' ),
 				array( &$this, 'select_element_callback' ),
@@ -407,8 +422,30 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 
 			// Register defaults if settings empty (might not work in case there's only checkboxes and they're all disabled)
 			$option_values = get_option($option);
-			if ( empty( $option_values ) )
+			if ( empty( $option_values ) ) {
 				$this->default_settings();
+			}
+
+			// determine highest invoice number if option not set
+			if ( !isset($option_values['next_invoice_number']) ) {
+				// Based on code from WooCommerce Sequential Order Numbers
+				global $wpdb;
+				// get highest invoice_number in postmeta table
+				$max_invoice_number = $wpdb->get_var( 'SELECT max(cast(meta_value as UNSIGNED)) from ' . $wpdb->postmeta . ' where meta_key="_wcpdf_invoice_number"' );
+				// get highest order_number in postmeta table
+				// $max_order_number = $wpdb->get_var( 'SELECT max(cast(meta_value as UNSIGNED)) from ' . $wpdb->postmeta . ' where meta_key="_order_number"' );
+				// get highest post_id with type shop_order in post table
+				// $max_order_id = $wpdb->get_var( 'SELECT max(cast(ID as UNSIGNED)) from ' . $wpdb->posts . ' where post_type="shop_order"' );
+				
+				$next_invoice_number = '';
+
+				if ( isset($max_invoice_number) && !empty($max_invoice_number) ) {
+					$next_invoice_number = $max_invoice_number+1;
+				}
+
+				$option_values['next_invoice_number'] = $next_invoice_number;
+				update_option( $option, $option_values );
+			}
 		}
 
 		/**

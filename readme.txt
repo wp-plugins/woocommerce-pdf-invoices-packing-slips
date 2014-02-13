@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8 and WooCommerce 2.1
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,12 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.2.3 =
+* Feature: Manually edit invoice number on the edit order screen
+* Feature: Set the first (/next) invoice number can on the settings screen
+* Fix: Bug where invoice number would be generated twice due to slow database calls
+* Fix: php strict warnings
 
 = 1.2.2 =
 * PDF engine updated (dompdf 0.6.0)
