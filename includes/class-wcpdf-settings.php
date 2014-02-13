@@ -335,7 +335,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 
 			add_settings_field(
 				'next_invoice_number',
-				__( 'Next invoice number', 'wpo_wcpdf' ),
+				__( 'Next invoice number (without prefix/suffix etc.)', 'wpo_wcpdf' ),
 				array( &$this, 'text_element_callback' ),
 				$option,
 				'template_settings',
@@ -343,7 +343,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					'menu'			=> $option,
 					'id'			=> 'next_invoice_number',
 					'size'			=> '10',
-					'description'		=> __( 'This is the number that will be used on the next invoice that is created. By default, numbering starts from the WooCommerce Order Number of the first invoice that is created and increases for every new invoice. Note that if you override this and set it lower than the highest (PDF) invoice number, this could create double invoice numbers!', 'wpo_wcpdf' ),
+					'description'		=> __( 'This is the number that will be used on the next invoice that is created. By default, numbering starts from the WooCommerce Order Number of the first invoice that is created and increases for every new invoice. Note that if you override this and set it lower than the highest (PDF) invoice number, this could create double invoice numbers!<br/>Check the <a href="http://wordpress.org/plugins/woocommerce-pdf-invoices-packing-slips/faq/" target="_blank">FAQ</a> for instructions on how to format the invoice number.', 'wpo_wcpdf' ),
 				)
 			);
 
