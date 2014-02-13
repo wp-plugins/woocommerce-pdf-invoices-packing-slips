@@ -76,12 +76,12 @@ You can do this via a filter in your theme's `functions.php` (Some themes have a
 
 `
 add_filter( 'wpo_wcpdf_invoice_number', 'wpo_wcpdf_invoice_number', 10, 4 );
-
 function wpo_wcpdf_invoice_number( $invoice_number, $order_number, $order_id, $order_date ) {
 	$prefix = 'ABC';
 	$order_year = date_i18n( 'Y', strtotime( $order_date ) );
-	$offset = 10000;
-	$invoice_number = $prefix . $order_year . ($offset + $invoice_number);
+	$padding = 6; // number of digits - so 42 becomes 000042
+	$suffix = 'X';
+	$invoice_number = $prefix . $order_year . sprintf('%0'.$padding.'d', $invoice_number) . $suffix ;
 	return $invoice_number;
 }
 ` 
