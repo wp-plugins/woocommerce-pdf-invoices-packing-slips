@@ -176,13 +176,19 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 
 			add_settings_field(
 				'email_pdf',
-				__( 'Email invoice (attach to order confirmation or invoice email)', 'wpo_wcpdf' ),
-				array( &$this, 'checkbox_element_callback' ),
+				__( 'Attach invoice to:', 'wpo_wcpdf' ),
+				array( &$this, 'multiple_checkbox_element_callback' ),
 				$option,
 				'general_settings',
 				array(
 					'menu'			=> $option,
 					'id'			=> 'email_pdf',
+					'options' 		=> array(
+						'new_order'			=> __( 'Admin New Order email' , 'wpo_wcpdf' ),
+						'processing'		=> __( 'Customer Processing Order email' , 'wpo_wcpdf' ),
+						'completed'			=> __( 'Customer Completed Order email' , 'wpo_wcpdf' ),
+						'customer_invoice'	=> __( 'Customer Invoice email' , 'wpo_wcpdf' ),
+					),
 					'description'	=> $tmp_path_check ? '<span class="wpo-warning">' . sprintf( __( 'It looks like the temp folder (<code>%s</code>) is not writable, check the permissions for this folder! Without having write access to this folder, the plugin will not be able to email invoices.', 'wpo_wcpdf' ), $tmp_path ).'</span>':'',
 				)
 			);
@@ -190,6 +196,16 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			// Register settings.
 			register_setting( $option, $option, array( &$this, 'validate_options' ) );
 	
+			$option_values = get_option($option);
+			// convert old 'statusless' setting to new status array
+			if ( isset( $option_values['email_pdf'] ) && !is_array( $option_values['email_pdf'] ) ) {
+				$default_status = apply_filters( 'wpo_wcpdf_attach_to_status', 'completed' );
+				$option_values['email_pdf'] = array (
+						$default_status		=> 1,
+						'customer_invoice'	=> 1,
+					);
+				update_option( $option, $option_values );
+			}
 	
 			/**************************************/
 			/********** TEMPLATE SETTINGS *********/
@@ -420,14 +436,14 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			// Register settings.
 			register_setting( $option, $option, array( &$this, 'validate_options' ) );
 
-			// Register defaults if settings empty (might not work in case there's only checkboxes and they're all disabled)
+			// Register defaults if settings empty
 			$option_values = get_option($option);
-			if ( empty( $option_values ) ) {
+			if ( !isset( $option_values['paper_size'] ) ) {
 				$this->default_settings();
 			}
 
 			// determine highest invoice number if option not set
-			if ( !isset($option_values['next_invoice_number']) ) {
+			if ( !isset( $option_values['next_invoice_number']) ) {
 				// Based on code from WooCommerce Sequential Order Numbers
 				global $wpdb;
 				// get highest invoice_number in postmeta table
@@ -456,7 +472,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 
 			$default_general = array(
 				'download_display'	=> 'download',
-				'email_pdf'			=> '1',
 			);
 
 			$default_template = array(
@@ -539,8 +554,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		
 			$html = sprintf( '<input type="checkbox" id="%1$s" name="%2$s[%1$s]" value="1"%3$s />', $id, $menu, checked( 1, $current, false ) );
 		
-			//$html .= sprintf( '<label for="%s"> %s</label><br />', $id, __( 'Activate/Deactivate', 'wpo_wcpdf' ) );
-		
 			// Displays option description.
 			if ( isset( $args['description'] ) ) {
 				$html .= sprintf( '<p class="description">%s</p>', $args['description'] );
@@ -549,6 +562,31 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			echo $html;
 		}
 		
+		/**
+		 * Multiple Checkbox field callback.
+		 *
+		 * @param  array $args Field arguments.
+		 *
+		 * @return string	  Checkbox field.
+		 */
+		public function multiple_checkbox_element_callback( $args ) {
+			$menu = $args['menu'];
+			$id = $args['id'];
+		
+			$options = get_option( $menu );
+		
+		
+			foreach ( $args['options'] as $key => $label ) {
+				$current = ( isset( $options[$id][$key] ) ) ? $options[$id][$key] : '';
+				printf( '<input type="checkbox" id="%1$s[%2$s][%3$s]" name="%1$s[%2$s][%3$s]" value="1"%4$s /> %5$s<br/>', $menu, $id, $key, checked( 1, $current, false ), $label );
+			}
+
+			// Displays option description.
+			if ( isset( $args['description'] ) ) {
+				printf( '<p class="description">%s</p>', $args['description'] );
+			}
+		}
+
 		/**
 		 * Select element callback.
 		 *
@@ -697,12 +735,15 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		
 				// Check to see if the current option has a value. If so, process it.
 				if ( isset( $input[$key] ) ) {
-		
 					// Strip all HTML and PHP tags and properly handle quoted strings.
-					$output[$key] = strip_tags( $input[$key] );
-					
-					// Or alternatively: don't strip HTML! :o)
-					//$output[$key] = stripslashes( $input[$key] );
+					if ( is_array( $input[$key] ) ) {
+						foreach ( $input[$key] as $sub_key => $sub_value ) {
+							$output[$key][$sub_key] = strip_tags( $input[$key][$sub_key] );
+						}
+
+					} else {
+						$output[$key] = strip_tags( $input[$key] );
+					}
 				}
 			}
 		

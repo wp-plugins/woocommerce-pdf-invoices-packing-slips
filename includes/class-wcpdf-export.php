@@ -32,7 +32,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$this->template_default_base_path = WooCommerce_PDF_Invoices::$plugin_path . 'templates/' . $this->template_directory_name . '/';
 			$this->template_default_base_uri = WooCommerce_PDF_Invoices::$plugin_url . 'templates/' . $this->template_directory_name . '/';
 
-			$this->template_path = $this->template_settings['template_path'];
+			$this->template_path = isset( $this->template_settings['template_path'] )?$this->template_settings['template_path']:'';
 
 			add_action( 'wp_ajax_generate_wpo_wcpdf', array($this, 'generate_pdf_ajax' ));
 			add_filter( 'woocommerce_email_attachments', array( $this, 'attach_pdf_to_email' ), 99, 3);
@@ -240,10 +240,24 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			// clear temp folder (from http://stackoverflow.com/a/13468943/1446634)
 			$tmp_path = WooCommerce_PDF_Invoices::$plugin_path . 'tmp/';
 			array_map('unlink', ( glob( $tmp_path.'*' ) ? glob( $tmp_path.'*' ) : array() ) );
-			
-			$order_status = apply_filters( 'wpo_wcpdf_attach_to_status', 'completed' );
 
-			if( isset( $status ) && ( $status=="customer_" . $order_status . "_order" || $status == "customer_invoice" ) ) {
+
+			// Relevant (default) statuses:
+			// new_order
+			// customer_invoice
+			// customer_processing_order
+			// customer_completed_order
+
+			$allowed_statuses = array_keys( $this->general_settings['email_pdf'] );
+			
+			foreach ($allowed_statuses as $key => $order_status) {
+				// convert 'lazy' status name
+				if ($order_status == 'completed' || $order_status == 'processing') {
+					$allowed_statuses[$key] = "customer_" . $order_status . "_order";
+				}
+			}
+
+			if( isset( $status ) && in_array ( $status, $allowed_statuses ) ) {
 				$order_number = ltrim( $order->get_order_number(), '#' );
 				$pdf_filename_prefix = __( 'invoice', 'wpo_wcpdf' );
 				$pdf_filename = $pdf_filename_prefix . '-' . $order_number . '.pdf';
