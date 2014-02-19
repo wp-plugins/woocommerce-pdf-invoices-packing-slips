@@ -202,7 +202,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$filename = $template_name . '-' . $display_number . '.pdf'; // 'packing-slip-123456.pdf'
 			}
 
-			$filename = apply_filters( 'wpo_wcpdf_bulk_filename', $filename, $order_ids, $template_name );
+			$filename = apply_filters( 'wpo_wcpdf_bulk_filename', $filename, $order_ids, $template_name, $template_type );
 	
 			// Get output setting
 			$output_mode = isset($this->general_settings['download_display'])?$this->general_settings['download_display']:'';
@@ -262,7 +262,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$display_number = $this->get_display_number( $order->id );
 				$pdf_filename_prefix = __( 'invoice', 'wpo_wcpdf' );
 				$pdf_filename = $pdf_filename_prefix . '-' . $display_number . '.pdf';
-				$pdf_filename = apply_filters( 'wpo_wcpdf_attachment_filename', $pdf_filename, $order->id );
+				$pdf_filename = apply_filters( 'wpo_wcpdf_attachment_filename', $pdf_filename, $display_number, $order->id );
 				$pdf_path = $tmp_path . $pdf_filename;
 				file_put_contents ( $pdf_path, $invoice );
 				$attachments[] = $pdf_path;
