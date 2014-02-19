@@ -12,6 +12,8 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 */
 		public function __construct() {
 			add_action( 'woocommerce_admin_order_actions_end', array( $this, 'add_listing_actions' ) );
+			add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_invoice_number_column' ) );
+			add_action( 'manage_shop_order_posts_custom_column', array( $this, 'invoice_number_column_data' ), 2 );
 			add_action( 'add_meta_boxes_shop_order', array( $this, 'add_box' ) );
 			add_filter( 'woocommerce_my_account_my_orders_actions', array( $this, 'my_account_pdf_link' ), 10, 2 );
 			add_action( 'admin_print_scripts', array( $this, 'add_scripts' ) );
@@ -49,12 +51,12 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 			if( $this->is_order_edit_page() ) {
 				wp_enqueue_script( 'wpo-wcpdf', WooCommerce_PDF_Invoices::$plugin_url . 'js/script.js', array( 'jquery' ) );
 				wp_localize_script(  
-				    'wpo-wcpdf',  
-				    'wpo_wcpdf_ajax',  
-				    array(  
-				        'ajaxurl' => admin_url( 'admin-ajax.php' ), // URL to WordPress ajax handling page  
-				        'nonce' => wp_create_nonce('generate_wpo_wcpdf')  
-				    )  
+					'wpo-wcpdf',  
+					'wpo_wcpdf_ajax',  
+					array(  
+						'ajaxurl' => admin_url( 'admin-ajax.php' ), // URL to WordPress ajax handling page  
+						'nonce' => wp_create_nonce('generate_wpo_wcpdf')  
+					)  
 				);  
 			}
 		}	
@@ -85,6 +87,45 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 			<?php
 		}
 		
+		/**
+		 * Create additional Shop Order column for Invoice Numbers
+		 * @param array $columns shop order columns
+		 */
+		public function add_invoice_number_column( $columns ) {
+			// Check user setting
+			if ( !isset($this->general_settings['invoice_number_column'] ) ) {
+				return $columns;
+			}
+
+			// put the column after the Status column
+			$new_columns = array_slice($columns, 0, 2, true) +
+				array( 'pdf_invoice_number' => __( 'Invoice Number', 'wpo_wcpdf' ) ) +
+				array_slice($columns, 2, count($columns) - 1, true) ;
+			return $new_columns;
+		}
+
+		/**
+		 * Display Invoice Number in Shop Order column (if available)
+		 * @param  string $column column slug
+		 */
+		public function invoice_number_column_data( $column ) {
+			global $post, $the_order;
+
+			if ( $column == 'pdf_invoice_number' && get_post_meta($the_order->id,'_wcpdf_invoice_number',true) ) {
+				if ( empty( $the_order ) || $the_order->id != $post->ID ) {
+					$the_order = new WC_Order( $post->ID );
+				}
+
+				// collect data for invoice number filter
+				$invoice_number = get_post_meta($the_order->id,'_wcpdf_invoice_number',true);
+				$order_number = $the_order->get_order_number();
+				$order_id = $the_order->id;
+				$order_date = $the_order->order_date;
+
+				echo apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $order_number, $order_id, $order_date );
+			}
+		}
+
 		/**
 		 * Add the meta box on the single order page
 		 */

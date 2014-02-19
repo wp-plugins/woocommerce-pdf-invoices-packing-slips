@@ -263,7 +263,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$pdf_filename = $pdf_filename_prefix . '-' . $order_number . '.pdf';
 				$pdf_filename = apply_filters( 'wpo_wcpdf_attachment_filename', $pdf_filename, $order_number );
 				$pdf_path = $tmp_path . $pdf_filename;
-				
 				$invoice = $this->get_pdf( 'invoice', (array) $order->id );
 				file_put_contents ( $pdf_path, $invoice );
 				$attachments[] = $pdf_path;

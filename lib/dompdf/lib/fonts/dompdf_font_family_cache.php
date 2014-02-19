@@ -69,45 +69,6 @@
     'italic' => DOMPDF_FONT_DIR . 'Courier-Oblique',
     'bold_italic' => DOMPDF_FONT_DIR . 'Courier-BoldOblique',
   ),
-  'dejavu sans' => 
-  array (
-    'bold' => DOMPDF_FONT_DIR . 'DejaVuSans-Bold',
-    'bold_italic' => DOMPDF_FONT_DIR . 'DejaVuSans-BoldOblique',
-    'italic' => DOMPDF_FONT_DIR . 'DejaVuSans-Oblique',
-    'normal' => DOMPDF_FONT_DIR . 'DejaVuSans',
-  ),
-  'dejavu sans light' => 
-  array (
-    'normal' => DOMPDF_FONT_DIR . 'DejaVuSans-ExtraLight',
-  ),
-  'dejavu sans condensed' => 
-  array (
-    'bold' => DOMPDF_FONT_DIR . 'DejaVuSansCondensed-Bold',
-    'bold_italic' => DOMPDF_FONT_DIR . 'DejaVuSansCondensed-BoldOblique',
-    'italic' => DOMPDF_FONT_DIR . 'DejaVuSansCondensed-Oblique',
-    'normal' => DOMPDF_FONT_DIR . 'DejaVuSansCondensed',
-  ),
-  'dejavu sans mono' => 
-  array (
-    'bold' => DOMPDF_FONT_DIR . 'DejaVuSansMono-Bold',
-    'bold_italic' => DOMPDF_FONT_DIR . 'DejaVuSansMono-BoldOblique',
-    'italic' => DOMPDF_FONT_DIR . 'DejaVuSansMono-Oblique',
-    'normal' => DOMPDF_FONT_DIR . 'DejaVuSansMono',
-  ),
-  'dejavu serif' => 
-  array (
-    'bold' => DOMPDF_FONT_DIR . 'DejaVuSerif-Bold',
-    'bold_italic' => DOMPDF_FONT_DIR . 'DejaVuSerif-BoldItalic',
-    'italic' => DOMPDF_FONT_DIR . 'DejaVuSerif-Italic',
-    'normal' => DOMPDF_FONT_DIR . 'DejaVuSerif',
-  ),
-  'dejavu serif condensed' => 
-  array (
-    'bold' => DOMPDF_FONT_DIR . 'DejaVuSerifCondensed-Bold',
-    'bold_italic' => DOMPDF_FONT_DIR . 'DejaVuSerifCondensed-BoldItalic',
-    'italic' => DOMPDF_FONT_DIR . 'DejaVuSerifCondensed-Italic',
-    'normal' => DOMPDF_FONT_DIR . 'DejaVuSerifCondensed',
-  ),
   'segoe' => 
   array (
     'normal' => DOMPDF_FONT_DIR . 'ca62b8dbf47b24df65c291a7b33ced62',

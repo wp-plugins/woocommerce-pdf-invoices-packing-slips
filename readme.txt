@@ -2,7 +2,7 @@
 Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
-Tested up to: 3.8 and WooCommerce 2.1
+Tested up to: 3.8.1 and WooCommerce 2.1
 Stable tag: 1.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ This WooCommerce extension automatically adds a PDF invoice to the order confirm
 * Automatically attach invoice PDF to order confirmation email
 * Users can download their invoices from the My Account page
 * Sequential invoice numbers (fully customizable with filters, see the [FAQ](http://wordpress.org/plugins/woocommerce-pdf-invoices-packing-slips/faq/))
-* **Available in: Dutch, English, French, German, Hungarian, Italian & Spanish**
+* **Available in: Dutch, English, French, German, Hungarian, Italian, Russian, Spanish & Ukrainian**
 
 = Fully customizable =
 In addition to a number of default settings (including a custom header/logo) and several layout fields that you can use out of the box, the plugin contains HTML/CSS based templates that allow for customization & full control over the PDF output.
@@ -99,6 +99,14 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 
 == Changelog ==
 
+= 1.2.5 =
+* Feature: Optional Invoice Number column for the orders listing
+* Feature: Better support for international characters
+* Feature: Added Russian & Ukrainian translation (thanks Oleg!)
+* Tweak: Updated Spanish (Thanks Manuel!) and Dutch translations
+* Tweak: Updated POT file
+* Tweak: Memory limit notice
+
 = 1.2.4 =
 * Feature: Set which type of emails you want to attach the invoice to
 
@@ -109,10 +117,10 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 * Fix: php strict warnings
 
 = 1.2.2 =
-* PDF engine updated (dompdf 0.6.0)
-* Simple template now uses Open Sans to include more international special characters
-* Implemented filters for paper size & orientation ([read here](http://wordpress.org/support/topic/select-a5-paper-size-for-packing-slips?replies=5#post-5211129))
-* Download PDF link on the my account page is now only shown when an invoice is already created by the admin or automatically, to prevent unwanted invoice created (creating problems with european laws).
+* Feature: Simple template now uses Open Sans to include more international special characters
+* Feature: Implemented filters for paper size & orientation ([read here](http://wordpress.org/support/topic/select-a5-paper-size-for-packing-slips?replies=5#post-5211129))
+* Tweak: PDF engine updated (dompdf 0.6.0)
+* Tweak: Download PDF link on the my account page is now only shown when an invoice is already created by the admin or automatically, to prevent unwanted invoice created (creating problems with european laws).
 
 = 1.2.1 =
 * Fix: shipping & fees functions didn't output correctly with the tax set to 'incl'
