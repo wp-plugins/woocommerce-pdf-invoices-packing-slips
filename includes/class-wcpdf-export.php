@@ -14,7 +14,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 		public $order;
 		public $template_type;
-		public $invoice_number;
 		public $order_id;
 		public $output_body;
 
@@ -174,27 +173,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 				// if we got here, we're safe to go!
 			}
-
-			$template_type = $_GET['template_type'];
-			if ($template_type == 'invoice' ) {
-				$template_name = _n( 'invoice', 'invoices', count($order_ids), 'wpo_wcpdf' );
-			} else {
-				$template_name = _n( 'packing-slip', 'packing-slips', count($order_ids), 'wpo_wcpdf' );
-			}
-
-			// Filename
-			if ( count($order_ids) > 1 ) {
-				$filename = $template_name . '-' . date('Y-m-d') . '.pdf'; // 'invoices-2020-11-11.pdf'
-			} else {
-				$order = new WC_Order ( $order_ids[0] );
-				$order_number = ltrim( $order->get_order_number(), '#' );
-				$filename = $template_name . '-' . $order_number . '.pdf'; // 'packing-slip-123456.pdf'
-			}
-			$filename = apply_filters( 'wpo_wcpdf_bulk_filename', $filename, $order_ids, $template_name );
-			
+		
 			// Generate the output
-			// $this->stream_pdf( $template_type, $order_ids, $filename );
-
+			$template_type = $_GET['template_type'];
 			// die($this->process_template( $template_type, $order_ids )); // or use the filter switch below!
 
 			if (apply_filters('wpo_wcpdf_output_html', false, $template_type)) {
@@ -206,6 +187,23 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		
 			$invoice = $this->get_pdf( $template_type, $order_ids );
 
+			// get template name
+			if ($template_type == 'invoice' ) {
+				$template_name = _n( 'invoice', 'invoices', count($order_ids), 'wpo_wcpdf' );
+			} else {
+				$template_name = _n( 'packing-slip', 'packing-slips', count($order_ids), 'wpo_wcpdf' );
+			}
+
+			// Filename
+			if ( count($order_ids) > 1 ) {
+				$filename = $template_name . '-' . date('Y-m-d') . '.pdf'; // 'invoices-2020-11-11.pdf'
+			} else {
+				$display_number = $this->get_display_number( $order_ids[0] );
+				$filename = $template_name . '-' . $display_number . '.pdf'; // 'packing-slip-123456.pdf'
+			}
+
+			$filename = apply_filters( 'wpo_wcpdf_bulk_filename', $filename, $order_ids, $template_name );
+	
 			// Get output setting
 			$output_mode = isset($this->general_settings['download_display'])?$this->general_settings['download_display']:'';
 
@@ -258,12 +256,14 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			if( isset( $status ) && in_array ( $status, $allowed_statuses ) ) {
-				$order_number = ltrim( $order->get_order_number(), '#' );
-				$pdf_filename_prefix = __( 'invoice', 'wpo_wcpdf' );
-				$pdf_filename = $pdf_filename_prefix . '-' . $order_number . '.pdf';
-				$pdf_filename = apply_filters( 'wpo_wcpdf_attachment_filename', $pdf_filename, $order_number );
-				$pdf_path = $tmp_path . $pdf_filename;
+				// create pdf data
 				$invoice = $this->get_pdf( 'invoice', (array) $order->id );
+
+				$display_number = $this->get_display_number( $order->id );
+				$pdf_filename_prefix = __( 'invoice', 'wpo_wcpdf' );
+				$pdf_filename = $pdf_filename_prefix . '-' . $display_number . '.pdf';
+				$pdf_filename = apply_filters( 'wpo_wcpdf_attachment_filename', $pdf_filename, $order->id );
+				$pdf_path = $tmp_path . $pdf_filename;
 				file_put_contents ( $pdf_path, $invoice );
 				$attachments[] = $pdf_path;
 			}
@@ -274,11 +274,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		public function get_invoice_number( $order_id ) {
 			// get invoice number from post meta
 			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
-
-			// double check with local variable
-			if (!empty($this->invoice_number) ) {
-				$invoice_number = $this->invoice_number;
-			}
 
 			// add invoice number if it doesn't exist
 			if ( empty($invoice_number) || !isset($invoice_number) ) {
@@ -291,21 +286,34 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				} else {
 					$invoice_number = $next_invoice_number;
 				}
+				// die($invoice_number);
 
-				// set invoice number in object to double check (slow databases)
-				$this->invoice_number = $invoice_number;
+				update_post_meta($order_id, '_wcpdf_invoice_number', $invoice_number);
+
+				// increase next_order_number
+				$template_settings = get_option('wpo_wcpdf_template_settings');
+				$template_settings['next_invoice_number'] = $this->template_settings['next_invoice_number'] = $invoice_number+1;
+				update_option( 'wpo_wcpdf_template_settings', $template_settings );
 			}
 
-			update_post_meta($order_id, '_wcpdf_invoice_number', $invoice_number);
+			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->order->get_order_number(), $this->order->id, date_i18n( get_option( 'date_format' ), strtotime( $this->order->order_date ) ) );
+		}
 
-			// increase next_order_number
-			$template_settings = get_option('wpo_wcpdf_template_settings');
-			$template_settings['next_invoice_number'] = $invoice_number+1;
-			update_option( 'wpo_wcpdf_template_settings', $template_settings );
+		public function get_display_number( $order_id ) {
+			if ( !isset($this->order) ) {
+				$this->order = new WC_Order ( $order_id );
+			}
 
-			// die($invoice_number);
+			if ( isset($this->template_settings['display_number']) && $this->template_settings['display_number'] == 'invoice_number' ) {
+				// use invoice number
+				$display_number = $this->get_invoice_number( $order_id );
+				// die($display_number);
+			} else {
+				// use order number
+				$display_number = ltrim($this->order->get_order_number(), '#');
+			}
 
-			return $invoice_number;
+			return $display_number;
 		}
 
 		/**

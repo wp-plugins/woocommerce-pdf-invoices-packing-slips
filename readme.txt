@@ -106,6 +106,7 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 * Tweak: Updated Spanish (Thanks Manuel!) and Dutch translations
 * Tweak: Updated POT file
 * Tweak: Memory limit notice
+* Tweak: Filename name now includes invoice number (when used in the settings)
 
 = 1.2.4 =
 * Feature: Set which type of emails you want to attach the invoice to

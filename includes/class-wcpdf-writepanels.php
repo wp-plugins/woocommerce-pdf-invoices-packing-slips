@@ -183,7 +183,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 * Add actions to menu
 		 */
 		public function edit_invoice_number($order) {
-			woocommerce_wp_text_input( array( 'id' => '_wcpdf_invoice_number', 'label' => __( 'PDF Invoice Number', 'wpo_wcpdf' ) ) );
+			woocommerce_wp_text_input( array( 'id' => '_wcpdf_invoice_number', 'label' => __( 'PDF Invoice Number (unformatted!)', 'wpo_wcpdf' ) ) );
 		}
 
 		/**

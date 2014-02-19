@@ -281,7 +281,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 */
 		public function get_invoice_number() {
 			$invoice_number = $this->export->get_invoice_number( $this->export->order->id );
-			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->get_order_number(), $this->export->order->id, $this->get_order_date() );
+			return $invoice_number;
 		}
 		public function invoice_number() {
 			echo $this->get_invoice_number();
