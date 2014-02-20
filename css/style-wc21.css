@@ -50,6 +50,10 @@
 	width: 16px;
 }
 
+.widefat .column-pdf_invoice_number {
+	width: 110px;
+}
+
 /* Settings page styles */
 #img-header_logo {
 	max-height: 200px;

@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8.1 and WooCommerce 2.1
-Stable tag: 1.2.4
+Stable tag: 1.2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -106,7 +106,7 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 * Tweak: Updated Spanish (Thanks Manuel!) and Dutch translations
 * Tweak: Updated POT file
 * Tweak: Memory limit notice
-* Tweak: Filename name now includes invoice number (when used in the settings)
+* Tweak: Filename name now includes invoice number (when configured in the settings)
 
 = 1.2.4 =
 * Feature: Set which type of emails you want to attach the invoice to

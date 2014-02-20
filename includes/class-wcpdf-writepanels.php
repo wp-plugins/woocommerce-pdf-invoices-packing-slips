@@ -12,7 +12,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 */
 		public function __construct() {
 			add_action( 'woocommerce_admin_order_actions_end', array( $this, 'add_listing_actions' ) );
-			add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_invoice_number_column' ) );
+			add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_invoice_number_column' ), 999 );
 			add_action( 'manage_shop_order_posts_custom_column', array( $this, 'invoice_number_column_data' ), 2 );
 			add_action( 'add_meta_boxes_shop_order', array( $this, 'add_box' ) );
 			add_filter( 'woocommerce_my_account_my_orders_actions', array( $this, 'my_account_pdf_link' ), 10, 2 );
