@@ -55,6 +55,11 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 				$output_html[$order_id] = $this->get_template($template);
 
+				// store meta to be able to check if an invoice for an order has been created already
+				if ( $template_type == 'invoice' ) {
+					update_post_meta( $order_id, '_wcpdf_invoice_exists', 1 );
+				}
+
 				// Wipe post from cache
 				wp_cache_delete( $order_id, 'posts' );
 				wp_cache_delete( $order_id, 'post_meta' );

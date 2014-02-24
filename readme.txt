@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.8.1 and WooCommerce 2.1
-Stable tag: 1.2.5
+Stable tag: 1.2.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -84,7 +84,56 @@ function wpo_wcpdf_invoice_number( $invoice_number, $order_number, $order_id, $o
 	$invoice_number = $prefix . $order_year . sprintf('%0'.$padding.'d', $invoice_number) . $suffix ;
 	return $invoice_number;
 }
-` 
+`
+
+= How do can I modify the pdf filename? =
+
+You can do this via a filter in your theme's `functions.php` (Some themes have a "custom functions" area in the settings).
+
+For the export filename (from the woocommerce admin or the my account page):
+
+`
+add_filter( 'wpo_wcpdf_bulk_filename', 'my_pdf_bulk_filename', 10, 4 );
+function my_pdf_bulk_filename( $filename, $order_ids, $template_name, $template_type ) {
+	global $wpo_wcpdf;
+	if (count($order_ids) == 1) {
+		// single
+		$invoice_number = $wpo_wcpdf->get_invoice_number();
+		$filename = 'myshopname_' . $template_name . '-' . $invoice_number . '.pdf';
+	} else {
+		// multiple invoices/packing slips export
+		// create your own rules/ be creative!
+	}
+
+	return $filename;
+}
+`
+
+For the email attachment filename:
+`
+add_filter( 'wpo_wcpdf_attachment_filename', 'my_pdf_attachment_filename', 10, 3 );
+function my_pdf_attachment_filename( $filename, $display_number, $order_id ) {
+	//$display_number is either the order number or invoice number, according to your settings
+	$filename = 'myshopname_invoice-' . $display_number . '.pdf';
+
+	return $filename;
+}
+`
+
+= Why does the download link not display on the My Account page? =
+To prevent customers from prematurely creating invoices, the default setting is that a customer can only see/download an invoice from an order that already has an invoice - either created automatically for the email attachment, or manually by the shop manager. This means that ultimately the shop mananger determines whether an invoice is available to the customer. If you want to make the invoice available to everyone you can either of the following:
+1. Change the email setting to attach invoices to processing and/or new order emails as well
+2. Add a filter to your themes functions.php for greater control:
+
+`
+add_filter( 'wpo_wcpdf_myaccount_allowed_order_statuses', 'wpo_wcpdf_myaccount_allowed_order_statuses' );
+function wpo_wcpdf_myaccount_allowed_order_statuses( $allowed_statuses ) {
+	// Possible statuses : pending, failed, on-hold, processing, completed, refunded, cancelled
+	$allowed_statuses = array ( 'processing', 'completed' );
+
+	return $allowed_statuses;
+}
+`
 
 = Fatal error: Allowed memory size of ######## bytes exhausted (tried to allocate ### bytes) =
 
@@ -98,6 +147,10 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.2.6 =
+* Tweak: Spanish translation update (thanks prepu!)
+* Fix: More advanced checks to determine if a customer can download the invoice (including a status filter)
 
 = 1.2.5 =
 * Feature: Optional Invoice Number column for the orders listing
