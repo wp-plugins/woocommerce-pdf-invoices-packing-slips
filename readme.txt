@@ -122,6 +122,7 @@ function my_pdf_attachment_filename( $filename, $display_number, $order_id ) {
 
 = Why does the download link not display on the My Account page? =
 To prevent customers from prematurely creating invoices, the default setting is that a customer can only see/download an invoice from an order that already has an invoice - either created automatically for the email attachment, or manually by the shop manager. This means that ultimately the shop mananger determines whether an invoice is available to the customer. If you want to make the invoice available to everyone you can either of the following:
+
 1. Change the email setting to attach invoices to processing and/or new order emails as well
 2. Add a filter to your themes functions.php for greater control:
 
