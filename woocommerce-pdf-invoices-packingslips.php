@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.2.6
+ * Version: 1.2.7
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -242,11 +242,11 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			echo $this->get_current_date();
 		}
 
-	
 		/**
 		 * Return/Show payment method  
 		 */
 		public function get_payment_method() {
+			$Payment_method_label = __( 'Payment method', 'wpo_wcpdf' );
 			return apply_filters( 'wpo_wcpdf_payment_method', __( $this->export->order->payment_method_title, 'woocommerce' ) );
 		}
 		public function payment_method() {
@@ -257,6 +257,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 * Return/Show shipping method  
 		 */
 		public function get_shipping_method() {
+			$shipping_method_label = __( 'Shipping method', 'wpo_wcpdf' );
 			return apply_filters( 'wpo_wcpdf_shipping_method', __( $this->export->order->get_shipping_method(), 'woocommerce' ) );
 		}
 		public function shipping_method() {
@@ -435,6 +436,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 * Return the order taxes
 		 */
 		public function get_order_taxes() {
+			$tax_label = __( 'VAT', 'wpo_wcpdf' ); // register alternate label translation
 			if ($this->export->order->get_taxes()) {
 				foreach ( $this->export->order->get_taxes() as $tax ) {
 					$taxes[ sanitize_title( $tax[ 'name' ] ) ] = array(
