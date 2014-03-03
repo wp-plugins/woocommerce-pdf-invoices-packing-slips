@@ -36,6 +36,7 @@ body {
 	margin: 0cm;
 	font-family: 'Open Sans', sans-serif;
 	font-size: 9pt;
+	line-height: 1em;
 }
 
 h1,
@@ -216,6 +217,10 @@ table.totals tr:last-child td, table.totals tr:last-child th {
 	border-top: 2px solid #000;
 	border-bottom: 2px solid #000;
 	font-weight: bold;
+}
+
+table.totals td.price span:first-child {
+	display: block;
 }
 
 /* Footer Imprint */
