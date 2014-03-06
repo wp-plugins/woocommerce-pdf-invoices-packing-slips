@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.2.8
+ * Version: 1.2.9
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -438,8 +438,8 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		public function get_order_taxes() {
 			$tax_label = __( 'VAT', 'wpo_wcpdf' ); // register alternate label translation
 			if ($this->export->order->get_taxes()) {
-				foreach ( $this->export->order->get_taxes() as $tax ) {
-					$taxes[ sanitize_title( $tax[ 'name' ] ) ] = array(
+				foreach ( $this->export->order->get_taxes() as $key => $tax ) {
+					$taxes[ $key ] = array(
 						'label' => isset( $tax[ 'label' ] ) ? $tax[ 'label' ] : $tax[ 'name' ],
 						'value'	=> woocommerce_price( ( $tax[ 'tax_amount' ] + $tax[ 'shipping_tax_amount' ] ) )
 					);
@@ -461,10 +461,10 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				
 				if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 ) {
 					// WC 2.1 or newer is used
-					$total_unformatted = $this->export->order->get_order_total();
+					$total_unformatted = $this->export->order->get_total();
 				} else {
 					// Backwards compatibility
-					$total_unformatted = $this->export->order->get_total();
+					$total_unformatted = $this->export->order->get_order_total();
 				}
 
 				$total = woocommerce_price( ( $total_unformatted - $total_tax ) );
