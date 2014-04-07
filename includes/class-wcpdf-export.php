@@ -53,6 +53,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					die('Template not found! Check if the following file exists: <pre>'.$template.'</pre><br/>');
 				}
 
+				// Set the invoice number
+				$this->set_invoice_number( $order_id );
+
 				$output_html[$order_id] = $this->get_template($template);
 
 				// store meta to be able to check if an invoice for an order has been created already
@@ -278,11 +281,13 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$attachments[] = $pdf_path;
 			}
 
+			do_action( 'wpo_wcpdf_email_attachment', $pdf_path );
+
 			return $attachments;
 		}
 
-		public function get_invoice_number( $order_id ) {
-			// get invoice number from post meta
+		public function set_invoice_number( $order_id ) {
+			// first check: get invoice number from post meta
 			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
 
 			// add invoice number if it doesn't exist
@@ -305,6 +310,16 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$template_settings['next_invoice_number'] = $this->template_settings['next_invoice_number'] = $invoice_number+1;
 				update_option( 'wpo_wcpdf_template_settings', $template_settings );
 			}
+
+			// store invoice_number in class object
+			$this->invoice_number = $invoice_number;
+
+			return $invoice_number;
+		}
+
+		public function get_invoice_number( $order_id ) {
+			// get invoice number from post meta
+			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
 
 			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->order->get_order_number(), $this->order->id, date_i18n( get_option( 'date_format' ), strtotime( $this->order->order_date ) ) );
 		}
@@ -331,7 +346,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 */
 		public function get_template( $file ) {
 			ob_start();
-		    if (file_exists($file)) {
+			if (file_exists($file)) {
 				include($file);
 			}
 			return ob_get_clean();
@@ -362,25 +377,28 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					// Set the id
 					$data['product_id'] = $item['product_id'];
 					$data['variation_id'] = $item['variation_id'];
-										
+
 					// Set item name
 					$data['name'] = $item['name'];
 					
 					// Set item quantity
 					$data['quantity'] = $item['qty'];
 
-					// Set the line total (=before discount)
+					// Set the line total (=after discount)
 					$data['line_total'] = $this->wc_price( $item['line_total'] );
+					$data['single_line_total'] = $this->wc_price( $item['line_total'] / $item['qty'] );
 					$data['line_tax'] = $this->wc_price( $item['line_tax'] );
+					$data['single_line_tax'] = $this->wc_price( $item['line_tax'] / $item['qty'] );
 					$data['tax_rates'] = $this->get_tax_rate( $item['tax_class'], $item['line_total'], $item['line_tax'] );
 					
-					// Set the line subtotal
+					// Set the line subtotal (=before discount)
 					$data['line_subtotal'] = $this->wc_price( $item['line_subtotal'] );
 					$data['line_subtotal_tax'] = $this->wc_price( $item['line_subtotal_tax'] );
 					$data['ex_price'] = $this->get_formatted_item_price ( $item, 'total', 'excl' );
 					$data['price'] = $this->get_formatted_item_price ( $item, 'total' );
 
 					// Calculate the single price with the same rules as the formatted line subtotal (!)
+					// = before discount
 					$data['ex_single_price'] = $this->get_formatted_item_price ( $item, 'single', 'excl' );
 					$data['single_price'] = $this->get_formatted_item_price ( $item, 'single' );
 					
@@ -389,7 +407,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					$data['meta'] = $meta->display( false, true );
 
 					// Pass complete item array
-	                $data['item'] = $item;
+					$data['item'] = $item;
 					
 					// Create the product to display more info
 					$data['product'] = null;
@@ -531,15 +549,15 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			return;
 		}
 
-	    /**
-	     * Returns the main product image ID
+		/**
+		 * Returns the main product image ID
 		 * Adapted from the WC_Product class
-	     *
-	     * @access public
-	     * @return string
-	     */
-	    public function get_thumbnail_id ( $product_id ) {
-	    	global $woocommerce;
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public function get_thumbnail_id ( $product_id ) {
+			global $woocommerce;
 	
 			if ( has_post_thumbnail( $product_id ) ) {
 				$thumbnail_id = get_post_thumbnail_id ( $product_id );
@@ -550,7 +568,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 	
 			return $thumbnail_id;
-	    }
+		}
 		
 	}
 
