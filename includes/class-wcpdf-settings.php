@@ -100,17 +100,27 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 
 					<?php do_action( 'wpo_wcpdf_before_settings_page', $active_tab ); ?>				
 
-					<?php if (!class_exists('WooCommerce_PDF_IPS_Templates')) {
+					<?php
+					if (!class_exists('WooCommerce_PDF_IPS_Dropbox')) {
+						$dropbox_link = '<a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-dropbox/" target="_blank">WooCommerce PDF Invoices & Packing Slips to Dropbox</a>';
+						?>
+						<div class="wcpdf-dropbox" style="border: 1px solid #3D5C99; border-radius: 5px; padding: 15px 10px; margin-top: 15px; background-color: #EBF5FF;">
+							<img src="<?php echo WooCommerce_PDF_Invoices::$plugin_url . 'images/dropbox_logo.png'; ?>" style="float:left;margin-right:10px;margin-top:-5px;">
+							<?php printf( __("Upload all invoices automatically to your dropbox!<br/>Check out the %s extension.", 'wpo_wcpdf'), $dropbox_link );?> <br />
+						</div>
+						<?php
+					} 
+
+					if (!class_exists('WooCommerce_PDF_IPS_Templates') && $active_tab == 'template') {
 						$template_link = '<a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/" target="_blank">wpovernight.com</a>';
 						$email_link = '<a href="mailto:support@wpovernight.com">support@wpovernight.com</a>'
 						?>
-	
 						<div class="wcpdf-pro-templates" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-top: 15px; background-color: #eee;">
 							<?php printf( __("Looking for more advanced templates? Check out the Premium PDF Invoice & Packing Slips templates at %s.", 'wpo_wcpdf'), $template_link );?> <br />
 							<?php printf( __("For custom templates, contact us at %s.", 'wpo_wcpdf'), $email_link );?>
 						</div>
-
-					<?php } 
+						<?php
+					}
 
 					if ( $active_tab=='status' ) {
 						$this->status_page();
@@ -384,9 +394,40 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					'menu'			=> $option,
 					'id'			=> 'next_invoice_number',
 					'size'			=> '10',
-					'description'		=> __( 'This is the number that will be used on the next invoice that is created. By default, numbering starts from the WooCommerce Order Number of the first invoice that is created and increases for every new invoice. Note that if you override this and set it lower than the highest (PDF) invoice number, this could create double invoice numbers!<br/>Check the <a href="http://wordpress.org/plugins/woocommerce-pdf-invoices-packing-slips/faq/" target="_blank">FAQ</a> for instructions on how to format the invoice number.', 'wpo_wcpdf' ),
+					'description'	=> __( 'This is the number that will be used on the next invoice that is created. By default, numbering starts from the WooCommerce Order Number of the first invoice that is created and increases for every new invoice. Note that if you override this and set it lower than the highest (PDF) invoice number, this could create double invoice numbers!', 'wpo_wcpdf' ),
 				)
 			);
+
+			add_settings_field(
+				'invoice_number_formatting',
+				__( 'Invoice number format', 'wpo_wcpdf' ),
+				array( &$this, 'invoice_number_formatting_callback' ),
+				$option,
+				'template_settings',
+				array(
+					'menu'					=> $option,
+					'id'					=> 'invoice_number_formatting',
+					'fields'				=> array(
+						'prefix'			=> array(
+							'title'			=> __( 'Prefix' , 'wpo_wcpdf' ),
+							'size'			=> 20,
+							'description'	=> __( 'to use the order year and/or month, use [order_year] or [order_month] respectively' , 'wpo_wcpdf' ),
+						),
+						'suffix'			=> array(
+							'title'			=> __( 'Suffix' , 'wpo_wcpdf' ),
+							'size'			=> 20,
+							'description'	=> '',
+						),
+						'padding'			=> array(
+							'title'			=> __( 'Padding' , 'wpo_wcpdf' ),
+							'size'			=> 2,
+							'description'	=> __( 'enter the number of digits here - enter "6" to display 42 as 000042' , 'wpo_wcpdf' ),
+						),
+					),
+					'description'			=> __( 'note: if you have already created a custom invoice number format with a filter, the above settings will be ignored' , 'wpo_wcpdf' ),
+				)
+			);
+
 
 
 			add_settings_field(
@@ -726,6 +767,43 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		
 			echo $html;
 		}
+
+		/**
+		 * Invoice number formatting callback.
+		 *
+		 * @param  array $args Field arguments.
+		 *
+		 * @return string	  Media upload button & preview.
+		 */
+		public function invoice_number_formatting_callback( $args ) {
+			$menu = $args['menu'];
+			$fields = $args['fields'];
+			$options = get_option( $menu );
+
+			foreach ($fields as $key => $field) {
+				$id = $args['id'] . '_' . $key;
+
+				if ( isset( $options[$id] ) ) {
+					$current = $options[$id];
+				} else {
+					$current = '';
+				}
+
+				$title = $field['title'];
+				$size = $field['size'];
+				$description = isset( $field['description'] ) ? '<span style="font-style:italic; margin-left:5px;">'.$field['description'].'</span>' : '';
+
+				printf( '<span style="display:inline-block; width: 5em;">%1$s:</span><input type="text" id="%2$s" name="%3$s[%2$s]" value="%4$s" size="%5$s"/>%6$s<br/>', $title, $id, $menu, $current, $size, $description );
+			}
+		
+			// Displays option description.
+			if ( isset( $args['description'] ) ) {
+				printf( '<p class="description">%s</p>', $args['description'] );
+			}
+		
+			// echo $html;
+		}
+
 
 		/**
 		 * Section null callback.
