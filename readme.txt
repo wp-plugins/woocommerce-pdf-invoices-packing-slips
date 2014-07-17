@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 3.9.1 and WooCommerce 2.1
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -55,7 +55,7 @@ In the search field type "WooCommerce PDF Invoices & Packing Slips" and click Se
 
 = How do I create my own custom template? =
 
-Copy the files from `wp-content/plugins/woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple/` to `wp-content/themes/yourtheme/woocommerce/pdf/yourtemplate` and customize them there. The new template will shop up as 'yourtemplate' (the folder name) in the settings panel.
+Copy the files from `wp-content/plugins/woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple/` to `wp-content/themes/yourtheme/woocommerce/pdf/yourtemplate` and customize them there. The new template will show up as 'yourtemplate' (the folder name) in the settings panel.
 
 = Where can I find more templates? =
 
@@ -77,6 +77,20 @@ This plugin is translation ready, which means that you can translate it using st
 6. This step is a bit tricky, configuring the plurals. Somehow the settings can't be copied from the pot. Go to Catalogue > Preferences. Then enter nplurals=2; plural=n != 1; in the custom expression field
 7. Enter the translations. invoice and packing-slip now have two translation fields, single & plural. Note that this is a filename, so replace spaces with a - just to be sure!
 8. Save as `wpo_wcpdf-xx_XX.po`, where you replace xx_XX with your language code & country code suffix (da_DK, pl_PL, de_DE etc.)
+
+= How can I display custom fields in the invoice or packing slip? =
+First, you need to create a custom template following instructions from the first item in this FAQ.
+Then place the following snippet where you would like the custom field to appear:
+
+`
+<?php $wpo_wcpdf->custom_field('custom_fieldname', 'Custom field:'); ?>
+`
+
+Where you replace 'custom_fieldname' with the name of the field you want to display, and 'Custom field' with the label. The plugin only displays the field when it contains data. If you also want to display the label when the field is empty, you can pass a third parameter, like thos:
+
+`
+<?php $wpo_wcpdf->custom_field('custom_fieldname', 'Custom field:',  true); ?>
+`
 
 = How do can I modify the pdf filename? =
 
@@ -159,6 +173,12 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.4.3 =
+* Feature: Added function to call custom fields more easily (see FAQ)
+* Feature: Change the my account button text via a filter (wpo_wcpdf_myaccount_button_text)
+* Translations: Added Danish (Thanks Mads!)
+* Tweak: only load PDF engine if it's not already loaded by another plugin
 
 = 1.4.2 =
 * Fix: Don't create invoice number when exporting packing slips

@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.4.2
+ * Version: 1.4.3
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -230,6 +230,21 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		}
 		public function shipping_address() {
 			echo $this->get_shipping_address();
+		}
+
+		/**
+		 * Return/Show a custom field
+		 */		
+		public function custom_field( $field_name, $field_label = '', $display_empty = false ) {
+			$custom_field = get_post_meta($this->export->order->id,$field_name,true);
+			if (!empty($field_label)){
+				// add a a trailing space to the label
+				$field_label .= ' ';
+			}
+
+			if (!empty($custom_field) || $display_empty) {
+				echo $field_label . $custom_field;
+			}
 		}
 	
 		/**
