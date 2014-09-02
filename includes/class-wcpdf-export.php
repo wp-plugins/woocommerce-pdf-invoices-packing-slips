@@ -33,6 +33,14 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			$this->template_path = isset( $this->template_settings['template_path'] )?$this->template_settings['template_path']:'';
 
+			// backwards compatible template path (1.4.4+ uses relative paths instead of absolute)
+			if (strpos($this->template_path, ABSPATH) == false) {
+				// add site base path, double check it exists!
+				if ( file_exists( ABSPATH . $this->template_path ) ) {
+					$this->template_path = ABSPATH . $this->template_path;
+				}
+			}
+
 			add_action( 'wp_ajax_generate_wpo_wcpdf', array($this, 'generate_pdf_ajax' ));
 			add_filter( 'woocommerce_email_attachments', array( $this, 'attach_pdf_to_email' ), 99, 3);
 
@@ -481,21 +489,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					
 					// Checking fo existance, thanks to MDesigner0 
 					if(!empty($product)) {
-						// Set the thumbnail id
-						$data['thumbnail_id'] = $this->get_thumbnail_id( $product->id );
-
-						// Set the thumbnail server path
-						$data['thumbnail_path'] = get_attached_file( $data['thumbnail_id'] );
+						// Set the thumbnail id DEPRICATED (does not support thumbnail sizes), use thumbnail_path or thumbnail instead
+						$data['thumbnail_id'] = $this->get_thumbnail_id( $product );
 
 						// Thumbnail (full img tag)
-						if (apply_filters('wpo_wcpdf_use_path', true)) {
-							// load img with server path by default
-							$data['thumbnail'] = sprintf('<img width="90" height="90" src="%s" class="attachment-shop_thumbnail wp-post-image">', $data['thumbnail_path']);
-						} else {
-							// load img with http url when filtered
-							$data['thumbnail'] = $product->get_image( 'shop_thumbnail', array( 'title' => '' ) );
-						}
-						
+						$data['thumbnail'] = $this->get_thumbnail ( $product );
+
 						// Set the single price (turned off to use more consistent calculated price)
 						// $data['single_price'] = woocommerce_price ( $product->get_price() );
 										
@@ -579,13 +578,13 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$tax_rates = array();
 
 				foreach ($taxes as $tax) {
-					$tax_rates[$tax['label']] = round( $tax['rate'], 2 ).'%';
+					$tax_rates[$tax['label']] = round( $tax['rate'], 2 ).' %';
 				}
 
 				if (empty($tax_rates)) {
 					// one last try: manually calculate
 					if ( $line_total != 0) {
-						$tax_rates[] = round( ($line_tax / $line_total)*100, 1 ).'%';
+						$tax_rates[] = round( ($line_tax / $line_total)*100, 1 ).' %';
 					} else {
 						$tax_rates[] = '-';
 					}
@@ -595,13 +594,44 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			} else {
 				// Backwards compatibility: calculate tax from line items
 				if ( $line_total != 0) {
-					$tax_rates = round( ($line_tax / $line_total)*100, 1 ).'%';
+					$tax_rates = round( ($line_tax / $line_total)*100, 1 ).' %';
 				} else {
 					$tax_rates = '-';
 				}
 			}
 			
 			return $tax_rates;
+		}
+
+		/**
+		 * Returns the percentage rate (float) for a given tax rate ID.
+		 * @param  int    $rate_id  woocommerce tax rate id
+		 * @return float  $rate     percentage rate
+		 */
+		public function get_tax_rate_by_id( $rate_id ) {
+			global $wpdb;
+			$rate = $wpdb->get_var( $wpdb->prepare( "SELECT tax_rate FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_id = %d;", $rate_id ) );
+			return (float) $rate;
+		}
+
+		/**
+		 * Returns a an array with rate_id => tax rate data (array) of all tax rates in woocommerce
+		 * @return array  $tax_rate_ids  keyed by id
+		 */
+		public function get_tax_rate_ids() {
+			global $wpdb;
+			$rates = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates" );
+
+			$tax_rate_ids = array();
+			foreach ($rates as $rate) {
+				// var_dump($rate->tax_rate_id);
+				// die($rate);
+				$rate_id = $rate->tax_rate_id;
+				unset($rate->tax_rate_id);
+				$tax_rate_ids[$rate_id] = (array) $rate;
+			}
+
+			return $tax_rate_ids;
 		}
 
 		/**
@@ -621,18 +651,45 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 * @access public
 		 * @return string
 		 */
-		public function get_thumbnail_id ( $product_id ) {
+		public function get_thumbnail_id ( $product ) {
+			// DEPRICATED (does not support thumbnail sizes)
 			global $woocommerce;
 	
-			if ( has_post_thumbnail( $product_id ) ) {
-				$thumbnail_id = get_post_thumbnail_id ( $product_id );
-			} elseif ( ( $parent_id = wp_get_post_parent_id( $product_id ) ) && has_post_thumbnail( $product_id ) ) {
+	    	if ( $product->variation_id && has_post_thumbnail( $product->variation_id ) ) {
+				$thumbnail_id = get_post_thumbnail_id ( $product->variation_id );
+			} elseif ( has_post_thumbnail( $product->id ) ) {
+				$thumbnail_id = get_post_thumbnail_id ( $product->id );
+			} elseif ( ( $parent_id = wp_get_post_parent_id( $product->id ) ) && has_post_thumbnail( $parent_id ) ) {
 				$thumbnail_id = get_post_thumbnail_id ( $parent_id );
 			} else {
 				$thumbnail_id = $woocommerce->plugin_url() . '/assets/images/placeholder.png';
 			}
 	
 			return $thumbnail_id;
+		}
+
+		public function get_thumbnail ( $product ) {
+			// Get default WooCommerce img tag (url/http)
+			$size = apply_filters( 'wpo_wcpdf_thumbnail_size', 'shop_thumbnail' );
+			$thumbnail_img_tag_url = $product->get_image( $size, array( 'title' => '' ) );
+			
+			// Extract the url from img
+			preg_match('/<img(.*)src(.*)=(.*)"(.*)"/U', $thumbnail_img_tag_url, $thumbnail_url );
+			// convert url to path
+			$thumbnail_path = str_replace( get_site_url() . '/', ABSPATH, array_pop($thumbnail_url));
+
+			// Thumbnail (full img tag)
+			if (apply_filters('wpo_wcpdf_use_path', true)) {
+				// load img with server path by default
+				$thumbnail = sprintf('<img width="90" height="90" src="%s" class="attachment-shop_thumbnail wp-post-image">', $thumbnail_path );
+			} else {
+				// load img with http url when filtered
+				$thumbnail = $thumbnail_img_tag_url;
+			}
+
+			// die($thumbnail);
+
+			return $thumbnail;
 		}
 		
 	}

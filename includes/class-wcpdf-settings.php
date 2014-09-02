@@ -838,14 +838,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		
 				// Check to see if the current option has a value. If so, process it.
 				if ( isset( $input[$key] ) ) {
-					// Strip all HTML and PHP tags and properly handle quoted strings.
 					if ( is_array( $input[$key] ) ) {
 						foreach ( $input[$key] as $sub_key => $sub_value ) {
-							$output[$key][$sub_key] = strip_tags( $input[$key][$sub_key] );
+							$output[$key][$sub_key] = $input[$key][$sub_key];
 						}
-
 					} else {
-						$output[$key] = strip_tags( $input[$key] );
+						$output[$key] = $input[$key];
 					}
 				}
 			}
@@ -877,7 +875,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				
 				foreach ($dirs as $dir) {
 					if ( file_exists($dir."/invoice.php") && file_exists($dir."/packing-slip.php"))
-						$installed_templates[$dir] = basename($dir);
+						// we're stripping abspath to make the plugin settings more portable
+						$installed_templates[ str_replace( ABSPATH, '', $dir )] = basename($dir);
 				}
 			}
 
