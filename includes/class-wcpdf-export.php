@@ -34,7 +34,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$this->template_path = isset( $this->template_settings['template_path'] )?$this->template_settings['template_path']:'';
 
 			// backwards compatible template path (1.4.4+ uses relative paths instead of absolute)
-			if (strpos($this->template_path, ABSPATH) == false) {
+			if (strpos($this->template_path, ABSPATH) === false) {
 				// add site base path, double check it exists!
 				if ( file_exists( ABSPATH . $this->template_path ) ) {
 					$this->template_path = ABSPATH . $this->template_path;
@@ -365,7 +365,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			// get invoice number from post meta
 			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
 
-			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->order->get_order_number(), $this->order->id, date_i18n( get_option( 'date_format' ), strtotime( $this->order->order_date ) ) );
+			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->order->get_order_number(), $this->order->id, $this->order->order_date );
 		}
 
 		public function format_invoice_number( $invoice_number, $order_number, $order_id, $order_date ) {
