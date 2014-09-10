@@ -22,7 +22,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 */
 		public function __construct() {					
 			global $woocommerce;
-			$this->order = new WC_Order();
+			$this->order = new WC_Order('');
 			$this->general_settings = get_option('wpo_wcpdf_general_settings');
 			$this->template_settings = get_option('wpo_wcpdf_template_settings');
 
@@ -272,7 +272,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			// clear temp folder (from http://stackoverflow.com/a/13468943/1446634)
-			$tmp_path = WooCommerce_PDF_Invoices::$plugin_path . 'tmp/';
+			$tmp_path = apply_filters( 'wpo_wcpdf_tmp_path', WooCommerce_PDF_Invoices::$plugin_path . 'tmp/' );
 			array_map('unlink', ( glob( $tmp_path.'*' ) ? glob( $tmp_path.'*' ) : array() ) );
 
 			// Relevant (default) statuses:
