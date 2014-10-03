@@ -14,6 +14,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		public function __construct() {
 			add_action( 'admin_menu', array( &$this, 'menu' ) ); // Add menu.
 			add_action( 'admin_init', array( &$this, 'init_settings' ) ); // Registers settings
+			add_filter( 'option_page_capability_wpo_wcpdf_template_settings', array( &$this, 'settings_capabilities' ) );
+			add_filter( 'option_page_capability_wpo_wcpdf_general_settings', array( &$this, 'settings_capabilities' ) );
 			add_action( 'admin_enqueue_scripts', array( &$this, 'load_scripts_styles' ) ); // Load scripts
 			
 			// Add links to WordPress plugins page
@@ -35,11 +37,18 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				$parent_slug,
 				__( 'PDF Invoices', 'wpo_wcpdf' ),
 				__( 'PDF Invoices', 'wpo_wcpdf' ),
-				'manage_options',
+				'manage_woocommerce',
 				'wpo_wcpdf_options_page',
 				array( $this, 'settings_page' )
 			);
 		}
+
+		/**
+		 * Set capability for settings page
+		 */
+		public function settings_capabilities() {
+			return 'manage_woocommerce';
+		}		
 		
 		/**
 		 * Styles for settings page
@@ -261,6 +270,11 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				$option
 			);
 
+
+			$theme_path = get_stylesheet_directory();
+			$theme_template_path = substr($theme_path, strpos($theme_path, 'wp-content')) . '/woocommerce/pdf/yourtemplate';
+			$plugin_template_path = 'wp-content/plugins/woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple';
+
 			add_settings_field(
 				'template_path',
 				__( 'Choose a template', 'wpo_wcpdf' ),
@@ -271,7 +285,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					'menu'			=> $option,
 					'id'			=> 'template_path',
 					'options' 		=> $this->find_templates(),
-					'description'	=> __( 'Want to use your own template? Copy all the files from <code>woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple/</code> to <code>yourtheme/woocommerce/pdf/yourtemplate/</code> to customize them' , 'wpo_wcpdf' ),
+					'description'	=> sprintf( __( 'Want to use your own template? Copy all the files from <code>%s</code> to <code>%s</code> to customize them' , 'wpo_wcpdf' ), $plugin_template_path, $theme_template_path),
 				)
 			);			
 
@@ -927,7 +941,13 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			// remove parent doubles
 			$installed_templates = array_unique($installed_templates);
 
-			return $installed_templates;
+			if (empty($installed_templates)) {
+				// fallback to Simple template for servers with glob() disabled
+				$simple_template_path = str_replace( ABSPATH, '', $template_paths['default'] . 'Simple' );
+				$installed_templates[$simple_template_path] = 'Simple';
+			}
+
+			return apply_filters( 'wpo_wcpdf_templates', $installed_templates );
 		}
 	
 	} // end class WooCommerce_PDF_Invoices_Settings

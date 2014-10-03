@@ -1,80 +1,66 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce PDF Invoices & Packing Slips v1.3.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-18 15:10+0100\n"
-"PO-Revision-Date: 2014-09-18 15:10+0100\n"
-"Last-Translator: Oleg Komarovskyi <komarovski21@gmail.com>\n"
-"Language-Team: KubiQ <7kubiq7@gmail.com>\n"
-"Language: sk_SK\n"
+"Project-Id-Version: WooCommerce PDF Invoices & Packing Slips\n"
+"POT-Creation-Date: 2014-09-18 15:03+0100\n"
+"PO-Revision-Date: 2014-09-18 15:03+0100\n"
+"Last-Translator: \n"
+"Language-Team: WP Overnight <support@wpovernight.com>\n"
+"Language: en_AU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
 "X-Generator: Poedit 1.6.9\n"
-"X-Poedit-SourceCharset: UTF-8\n"
-"X-Poedit-KeywordsList: __;_e;__ngettext:1,2;_n:1,2;__ngettext_noop:1,2;"
-"_n_noop:1,2;_c,_nc:4c,1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2\n"
 "X-Poedit-Basepath: ../\n"
-"X-Textdomain-Support: yes\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_x;_n:1,2\n"
 "X-Poedit-SearchPath-0: .\n"
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-export.php:168 includes/class-wcpdf-export.php:173
 #: includes/class-wcpdf-export.php:178 includes/class-wcpdf-export.php:189
 #: includes/class-wcpdf-export.php:202
 msgid "You do not have sufficient permissions to access this page."
-msgstr "Nemáte dostatočné oprávnenia na prístup k tejto stránke."
+msgstr ""
 
-#  This is a filename (prefix). do not use spaces or special characters!
-# @ wpo_wcpdf
+# This is a filename (prefix). do not use spaces or special characters!
 #: includes/class-wcpdf-export.php:223 includes/class-wcpdf-export.php:303
 msgid "invoice"
 msgid_plural "invoices"
-msgstr[0] "faktury"
-msgstr[1] "faktura"
-msgstr[2] "faktury"
+msgstr[0] ""
+msgstr[1] ""
 
-#  This is a filename (prefix). do not use spaces or special characters!
-# @ wpo_wcpdf
+# This is a filename (prefix). do not use spaces or special characters!
 #: includes/class-wcpdf-export.php:225
 msgid "packing-slip"
 msgid_plural "packing-slips"
-msgstr[0] "dodacie-listy"
-msgstr[1] "dodaci-list"
-msgstr[2] "dodacie-listy"
+msgstr[0] ""
+msgstr[1] ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:36 includes/class-wcpdf-settings.php:37
 #: includes/class-wcpdf-writepanels.php:176
 #: includes/class-wcpdf-writepanels.php:177
 msgid "PDF Invoices"
-msgstr "PDF faktúry"
+msgstr ""
 
-# @ woocommerce
 #: includes/class-wcpdf-settings.php:60
 msgid "Settings"
-msgstr "Nastavenia"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:82
 msgid "General"
-msgstr "Všeobecné"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:83
 msgid "Template"
-msgstr "Šablóna"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:92
 msgid "WooCommerce PDF Invoices"
-msgstr "WooCommerce PDF faktúry"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:98
 msgid "Status"
-msgstr "Stav"
+msgstr ""
 
 #: includes/class-wcpdf-settings.php:109
 #, php-format
@@ -83,68 +69,54 @@ msgid ""
 "extension."
 msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:119
 #, php-format
 msgid ""
 "Looking for more advanced templates? Check out the Premium PDF Invoice & "
 "Packing Slips templates at %s."
 msgstr ""
-"Hľadáte lepšie šablóny? Navštívte Premium PDF Invoice & Packing Slips "
-"šablóny na stránke %s."
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:120
 #, php-format
 msgid "For custom templates, contact us at %s."
-msgstr "Ak chcete šablónu na mieru, kontaktuje nás na %s."
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:175
 msgid "General settings"
-msgstr "Všeobecné nastavenia"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:182
 msgid "How do you want to view the PDF?"
-msgstr "Ako chcete zobraziť PDF?"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:190
 msgid "Download the PDF"
-msgstr "Stiahnuť PDF"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:191
 msgid "Open the PDF in a new browser tab/window"
-msgstr "Otvoriť PDF v novom okne"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:201
 msgid "Attach invoice to:"
-msgstr "Priložiť faktúru k správam pre:"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:209
 msgid "Admin New Order email"
-msgstr "administrátora - e-mail pri vytvorení novej objednávky"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:210
 msgid "Customer Processing Order email"
-msgstr "zákazníka - e-mail pri prijatí objednávky"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:211
 msgid "Customer Completed Order email"
-msgstr "zákazníka - e-mail pri vybavení objednávky"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:212
 msgid "Customer Invoice email"
-msgstr "zákazníka - e-mail pri vytvorení faktúry"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:214
 #, php-format
 msgid ""
@@ -152,115 +124,88 @@ msgid ""
 "permissions for this folder! Without having write access to this folder, the "
 "plugin will not be able to email invoices."
 msgstr ""
-"Zdá sa, že dočasný priečinok (<code>%s</code>) nie je prístupný, "
-"skontrolujte prosím poverenia (CHMOD)! Bez povolení pre zápis do tohto "
-"priečinku, nebude možné odosielať faktúry e-mailom."
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:220
 msgid "Enable invoice number column in the orders list"
-msgstr "Zobraziť stĺpec s číslom faktúry v objednávkach"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:259
 msgid "PDF Template settings"
-msgstr "Nastavenia PDF šablón"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:271
 msgid "Choose a template"
-msgstr "Zvoľte šablónu"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:279
 #, php-format
 msgid ""
 "Want to use your own template? Copy all the files from <code>%s</code> to "
 "<code>%s</code> to customize them"
 msgstr ""
-"Chcete použiť vlastnú šablónu? Skopírujte všetky súbory z <code>%s</code> do "
-"<code>%s</code> a upravte ich podľa potreby"
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:285
 msgid "Paper size"
-msgstr "Veľkosť papiera"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:293
 msgid "A4"
-msgstr "A4"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:294
 msgid "Letter"
-msgstr "Letter"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:301
 msgid "Shop header/logo"
-msgstr "Hlavička / logo"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:308
 msgid "Select or upload your invoice header/logo"
-msgstr "Vyberte alebo nahrajte hlavičku / logo vo faktúre"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:309
 msgid "Set image"
-msgstr "Zvoliť obrázok"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:310
 msgid "Remove image"
-msgstr "Odstrániť obrázok"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:317
 msgid "Shop Name"
-msgstr "Názov obchodu"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:330
 msgid "Shop Address"
-msgstr "Adresa obchodu"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:362
 msgid "Footer: terms & conditions, policies, etc."
-msgstr "Pätička: obchodné podmienky, ochrana osobných údajov, atď."
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:377
 msgid "Number to display on invoice"
-msgstr "Číslo zobrazené vo faktúre"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:385
 msgid "WooCommerce order number"
-msgstr "Číslo objednávky"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:386
 msgid "Built-in sequential invoice number"
-msgstr "Poradové číslo faktúry"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:388
 msgid ""
 "If you are using the WooCommerce Sequential Order Numbers plugin, select the "
 "WooCommerce order number"
 msgstr ""
-"Ak používate plugin <i>WooCommerce Sequential Order Numbers</i>, tak zvoľte "
-"Číslo objednávky"
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:394
 msgid "Next invoice number (without prefix/suffix etc.)"
-msgstr "Ďalšie číslo faktúry (bez predpony/prípony)"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:402
 msgid ""
 "This is the number that will be used on the next invoice that is created. By "
@@ -269,16 +214,10 @@ msgid ""
 "you override this and set it lower than the highest (PDF) invoice number, "
 "this could create double invoice numbers!"
 msgstr ""
-"Toto číslo bude použité v ďalšej vytvorenej faktúre. Číslovanie začína prvou "
-"vytvorenou faktúrou a narastá každou ďalšou vytvorenou faktúrou. POZOR: Ak "
-"toto prepíšete a nastavíte hodnotu na menšiu ako má ďalšia vytvorená "
-"faktúra, môže dôjsť k zdvojeniu číslovania vo faktúrach!"
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:408
-#, fuzzy
 msgid "Invoice number format"
-msgstr "Číslo faktúry"
+msgstr ""
 
 #: includes/class-wcpdf-settings.php:417
 msgid "Prefix"
@@ -308,113 +247,90 @@ msgid ""
 "filter, the above settings will be ignored"
 msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:440
 msgid "Date to display on invoice"
-msgstr "Dátum zobrazený vo faktúre"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:448
 msgid "Order date"
-msgstr "Dátum objednávky"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:449
 msgid "Invoice date"
-msgstr "Dátum vystavenia faktúry"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:457
 msgid "Extra template fields"
-msgstr "Extra políčka v šablóne"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:464
 msgid "Extra field 1"
-msgstr "Extra políčko 1"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:473
 msgid "This is footer column 1 in the <i>Modern (Premium)</i> template"
-msgstr "Toto je 1. políčko v pätičke v šablóne <i>Modern (Premium)</i>"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:479
 msgid "Extra field 2"
-msgstr "Extra políčko 2"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:488
 msgid "This is footer column 2 in the <i>Modern (Premium)</i> template"
-msgstr "Toto je 2. políčko v pätičke v šablóne <i>Modern (Premium)</i>"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:494
 msgid "Extra field 3"
-msgstr "Extra políčko 3"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:503
 msgid "This is footer column 3 in the <i>Modern (Premium)</i> template"
-msgstr "Toto je 3. políčko v pätičke v šablóne <i>Modern (Premium)</i>"
+msgstr ""
 
-# @ default
 #: includes/class-wcpdf-settings.php:760
 msgid "Image resolution"
-msgstr "Rozlíšenie obrázka"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-settings.php:871
 msgid ""
 "These are used for the (optional) footer columns in the <em>Modern "
 "(Premium)</em> template, but can also be used for other elements in your "
 "custom template"
 msgstr ""
-"Tieto nastavenia sú použité ako voliteľné časti pätičky v šablóne <em>Modern "
-"(Premium)</em>, ale môžu byť využité aj ako iné prvky vo Vašej vlastnej "
-"šablóne"
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:102
 msgid "Invoice Number"
-msgstr "Číslo faktúry"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:139
 msgid "Download invoice (PDF)"
-msgstr "Stiahnuť faktúru (PDF)"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:150
 msgid "Create PDF"
-msgstr "Vytvoriť PDF"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:160
 msgid "PDF invoice"
-msgstr "PDF faktúra"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:161
 msgid "PDF Packing Slip"
-msgstr "PDF dodací list"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:178
 #: includes/class-wcpdf-writepanels.php:179
 msgid "PDF Packing Slips"
-msgstr "PDF dodacie listy"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:192
 msgid "PDF Invoice Number (unformatted!)"
-msgstr "Číslo faktúry (mimo formátovania!)"
+msgstr ""
 
-# @ wpo_wcpdf
 #: includes/class-wcpdf-writepanels.php:195
 #: templates/pdf/Simple/invoice.php:37
 msgid "Invoice Date:"
-msgstr "Dátum vystavenia faktúry:"
+msgstr ""
 
 #: includes/class-wcpdf-writepanels.php:196
 msgid "h"
@@ -424,138 +340,112 @@ msgstr ""
 msgid "m"
 msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/html-document-wrapper.php:6
 #: templates/pdf/Simple/invoice.php:9 templates/pdf/Simple/invoice.php:21
 msgid "Invoice"
-msgstr "Faktúra"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/html-document-wrapper.php:6
 #: templates/pdf/Simple/packing-slip.php:9
 #: templates/pdf/Simple/packing-slip.php:21
 msgid "Packing Slip"
-msgstr "Dodací list"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:40
 #: templates/pdf/Simple/packing-slip.php:30
 msgid "Order Date:"
-msgstr "Dátum objednávky:"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:46
 msgid "Invoice Number:"
-msgstr "Číslo faktúry:"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:49
 #: templates/pdf/Simple/packing-slip.php:32
 msgid "Order Number:"
-msgstr "Číslo objednávky:"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:56
 msgid "Payment Method:"
-msgstr "Spôsob platby:"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:69
 #: templates/pdf/Simple/packing-slip.php:45
 msgid "Product"
-msgstr "Produkt"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:70
 #: templates/pdf/Simple/packing-slip.php:46
 msgid "Quantity"
-msgstr "Množstvo"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:71
 msgid "Price"
-msgstr "Cena"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:77
 msgid "Description"
-msgstr "Popis"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:80
 msgid "SKU"
-msgstr "Kód"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:81
 #: templates/pdf/Simple/packing-slip.php:54
 msgid "SKU:"
-msgstr "Kód:"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:82
 #: templates/pdf/Simple/packing-slip.php:55
 msgid "Weight:"
-msgstr "Hmotnosť:"
+msgstr ""
 
-# @ wpo_wcpdf
 #: templates/pdf/Simple/invoice.php:114
 #: templates/pdf/Simple/packing-slip.php:69
 msgid "Customer Notes"
-msgstr "Poznámky"
+msgstr ""
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:96
 #, php-format
 msgid ""
 "WooCommerce PDF Invoices & Packing Slips requires %sWooCommerce%s to be "
 "installed & activated!"
 msgstr ""
-"WooCommerce PDF Invoices & Packing Slips vyžaduje nainštalovaný a aktivovaný "
-"%sWooCommerce%s!"
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:191
 #: woocommerce-pdf-invoices-packingslips.php:227
 msgid "N/A"
-msgstr "N/A"
+msgstr ""
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:264
 msgid "Payment method"
-msgstr "Spôsob platby"
+msgstr ""
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:275
 msgid "Shipping method"
-msgstr "Doprava"
+msgstr ""
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:375
 msgid "Subtotal"
-msgstr "Medzisúčet"
+msgstr ""
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:397
 msgid "Shipping"
-msgstr "Doprava"
+msgstr ""
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:431
 msgid "Discount"
-msgstr "Zľava"
+msgstr ""
 
-# @ wpo_wcpdf
 #: woocommerce-pdf-invoices-packingslips.php:470
 msgid "VAT"
-msgstr "DPH"
+msgstr "GST"
 
-# @ default
 #: woocommerce-pdf-invoices-packingslips.php:507
 msgid "Total ex. VAT"
-msgstr "Spolu bez DPH"
+msgstr "Total ex. GST"
 
-# @ default
 #: woocommerce-pdf-invoices-packingslips.php:510
 msgid "Total"
-msgstr "Spolu"
+msgstr ""
