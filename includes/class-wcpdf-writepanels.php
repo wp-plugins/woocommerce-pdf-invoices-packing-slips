@@ -6,6 +6,7 @@
 if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 
 	class WooCommerce_PDF_Invoices_Writepanels {
+		public $bulk_actions;
 
 		/**
 		 * Constructor
@@ -25,6 +26,11 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 
 			$this->general_settings = get_option('wpo_wcpdf_general_settings');
 			$this->template_settings = get_option('wpo_wcpdf_template_settings');
+
+			$this->bulk_actions = array(
+				'invoice'		=> __( 'PDF Invoices', 'wpo_wcpdf' ),
+				'packing-slip'	=> __( 'PDF Packing Slips', 'wpo_wcpdf' ),
+			);
 		}
 
 		/**
@@ -54,8 +60,9 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 					'wpo-wcpdf',  
 					'wpo_wcpdf_ajax',  
 					array(  
-						'ajaxurl' => admin_url( 'admin-ajax.php' ), // URL to WordPress ajax handling page  
-						'nonce' => wp_create_nonce('generate_wpo_wcpdf')  
+						'ajaxurl'		=> admin_url( 'admin-ajax.php' ), // URL to WordPress ajax handling page  
+						'nonce'			=> wp_create_nonce('generate_wpo_wcpdf'),
+						'bulk_actions'	=> array_keys( apply_filters( 'wpo_wcpdf_bulk_actions', $this->bulk_actions ) ),
 					)  
 				);  
 			}
@@ -77,14 +84,28 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 * Add PDF actions to the orders listing
 		 */
 		public function add_listing_actions( $order ) {
-			?>
-			<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order->id ), 'generate_wpo_wcpdf' ); ?>" class="button tips wpo_wcpdf" target="_blank" alt="<?php esc_attr_e( 'PDF invoice', 'wpo_wcpdf' ); ?>" data-tip="<?php esc_attr_e( 'PDF invoice', 'wpo_wcpdf' ); ?>">
-				<img src="<?php echo WooCommerce_PDF_Invoices::$plugin_url . 'images/invoice.png'; ?>" alt="<?php esc_attr_e( 'PDF invoice', 'wpo_wcpdf' ); ?>" width="16">
-			</a>
-			<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=packing-slip&order_ids=' . $order->id ), 'generate_wpo_wcpdf' ); ?>" class="button tips wpo_wcpdf" target="_blank" alt="<?php esc_attr_e( 'PDF Packing Slip', 'wpo_wcpdf' ); ?>" data-tip="<?php esc_attr_e( 'PDF Packing Slip', 'wpo_wcpdf' ); ?>">
-				<img src="<?php echo WooCommerce_PDF_Invoices::$plugin_url . 'images/packing-slip.png'; ?>" alt="<?php esc_attr_e( 'PDF Packing Slip', 'wpo_wcpdf' ); ?>" width="16">
-			</a>
-			<?php
+			$listing_actions = array(
+				'invoice'		=> array (
+					'url'		=> wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order->id ), 'generate_wpo_wcpdf' ),
+					'img'		=> WooCommerce_PDF_Invoices::$plugin_url . 'images/invoice.png',
+					'alt'		=> esc_attr__( 'PDF Invoice', 'wpo_wcpdf' ),
+				),
+				'packing-slip'	=> array (
+					'url'		=> wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=packing-slip&order_ids=' . $order->id ), 'generate_wpo_wcpdf' ),
+					'img'		=> WooCommerce_PDF_Invoices::$plugin_url . 'images/packing-slip.png',
+					'alt'		=> esc_attr__( 'PDF Packing Slip', 'wpo_wcpdf' ),
+				),
+			);
+
+			$listing_actions = apply_filters( 'wpo_wcpdf_listing_actions', $listing_actions, $order );			
+
+			foreach ($listing_actions as $action => $data) {
+				?>
+				<a href="<?php echo $data['url']; ?>" class="button tips wpo_wcpdf <?php echo $action; ?>" target="_blank" alt="<?php echo $data['alt']; ?>" data-tip="<?php echo $data['alt']; ?>">
+					<img src="<?php echo $data['img']; ?>" alt="<?php echo $data['alt']; ?>" width="16">
+				</a>
+				<?php
+			}
 		}
 		
 		/**
@@ -140,7 +161,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 				);				
 			}
 
-			return $actions;
+			return apply_filters( 'wpo_wcpdf_myaccount_actions', $actions, $order );
 		}
 
 		/**
@@ -155,10 +176,29 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 */
 		public function create_box_content() {
 			global $post_id;
+
+			$meta_actions = array(
+				'invoice'		=> array (
+					'url'		=> wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $post_id ), 'generate_wpo_wcpdf' ),
+					'alt'		=> esc_attr__( 'PDF Invoice', 'wpo_wcpdf' ),
+					'title'		=> __( 'PDF Invoice', 'wpo_wcpdf' ),
+				),
+				'packing-slip'	=> array (
+					'url'		=> wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=packing-slip&order_ids=' . $post_id ), 'generate_wpo_wcpdf' ),
+					'alt'		=> esc_attr__( 'PDF Packing Slip', 'wpo_wcpdf' ),
+					'title'		=> __( 'PDF Packing Slip', 'wpo_wcpdf' ),
+				),
+			);
+
+			$meta_actions = apply_filters( 'wpo_wcpdf_meta_box_actions', $meta_actions );
+
 			?>
 			<ul class="wpo_wcpdf-actions">
-				<li><a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $post_id ), 'generate_wpo_wcpdf' ); ?>" class="button" target="_blank" alt="<?php esc_attr_e( 'PDF Invoice', 'wpo_wcpdf' ); ?>"><?php _e( 'PDF invoice', 'wpo_wcpdf' ); ?></a></li>
-				<li><a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=packing-slip&order_ids=' . $post_id ), 'generate_wpo_wcpdf' ); ?>" class="button" target="_blank" alt="<?php esc_attr_e( 'PDF Packing Slip', 'wpo_wcpdf' ); ?>"><?php _e( 'PDF Packing Slip', 'wpo_wcpdf' ); ?></a></li>
+				<?php
+				foreach ($meta_actions as $action => $data) {
+					printf('<li><a href="%1$s" class="button" target="_blank" alt="%2$s">%3$s</a></li>', $data['url'], $data['alt'],$data['title']);
+				}
+				?>
 			</ul>
 			<?php
 		}
@@ -168,15 +208,15 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 */
 		public function bulk_actions() {
 			global $post_type;
-	
+			$bulk_actions = apply_filters( 'wpo_wcpdf_bulk_actions', $this->bulk_actions );
+
 			if ( 'shop_order' == $post_type ) {
 				?>
 				<script type="text/javascript">
 				jQuery(document).ready(function() {
-					jQuery('<option>').val('invoice').text('<?php _e( 'PDF Invoices', 'wpo_wcpdf' )?>').appendTo("select[name='action']");
-					jQuery('<option>').val('invoice').text('<?php _e( 'PDF Invoices', 'wpo_wcpdf' )?>').appendTo("select[name='action2']");
-					jQuery('<option>').val('packing-slip').text('<?php _e( 'PDF Packing Slips', 'wpo_wcpdf' )?>').appendTo("select[name='action']");
-					jQuery('<option>').val('packing-slip').text('<?php _e( 'PDF Packing Slips', 'wpo_wcpdf' )?>').appendTo("select[name='action2']");
+					<?php foreach ($bulk_actions as $action => $title) { ?>
+					jQuery('<option>').val('<?php echo $action; ?>').text('<?php echo $title; ?>').appendTo("select[name='action'], select[name='action2']");
+					<?php }	?>
 				});
 				</script>
 				<?php
