@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, print, pdf, bulk, packing slips, invoices, delivery notes, invoice, packing slip, export, email
 Requires at least: 3.5 and WooCommerce 2.0
 Tested up to: 4.0 and WooCommerce 2.2
-Stable tag: 1.4.8
+Stable tag: 1.4.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -100,39 +100,33 @@ Where you replace 'custom_fieldname' with the name of the field you want to disp
 <?php $wpo_wcpdf->custom_field('custom_fieldname', 'Custom field:',  true); ?>
 `
 
-= How do can I modify the pdf filename? =
+= How can I display order notes in the invoice or packing slip? =
+First, you need to create a custom template following instructions from the first item in this FAQ.
+Then place the following snippet where you would like the order notes to appear:
 
+`
+<?php $wpo_wcpdf->order_notes(); ?>
+`
+
+if you want to display all order notes, including the (private) admin notes, use:
+`
+<?php $wpo_wcpdf->order_notes('all'); ?>
+`
+
+= How do can I modify the pdf filename? =
 You can do this via a filter in your theme's `functions.php` (Some themes have a "custom functions" area in the settings).
 
-For the export filename (from the woocommerce admin or the my account page):
-
+Here's a simple example for putting your shop name in front of the filname.
 `
-add_filter( 'wpo_wcpdf_bulk_filename', 'my_pdf_bulk_filename', 10, 4 );
-function my_pdf_bulk_filename( $filename, $order_ids, $template_name, $template_type ) {
-	global $wpo_wcpdf;
-	if (count($order_ids) == 1) {
-		// single
-		$invoice_number = $wpo_wcpdf->get_invoice_number();
-		$filename = 'myshopname_' . $template_name . '-' . $invoice_number . '.pdf';
-	} else {
-		// multiple invoices/packing slips export
-		// create your own rules/ be creative!
-	}
+add_filter( 'wpo_wcpdf_filename', 'wpo_wcpdf_custom_filename', 10, 4 );
+function wpo_wcpdf_custom_filename( $filename, $template_type, $order_ids, $context ) {
+	// prepend your shopname to the file
+	$new_filename = 'myshopname_' . $filename;
 
 	return $filename;
 }
 `
-
-For the email attachment filename:
-`
-add_filter( 'wpo_wcpdf_attachment_filename', 'my_pdf_attachment_filename', 10, 3 );
-function my_pdf_attachment_filename( $filename, $display_number, $order_id ) {
-	//$display_number is either the order number or invoice number, according to your settings
-	$filename = 'myshopname_invoice-' . $display_number . '.pdf';
-
-	return $filename;
-}
-`
+You can also use the $template_type ('invoice' or 'packing-slip'), $order_ids (single array) or $context ('download' or 'attachment') variables to make more complex rules for the filename.
 
 = Why does the download link not display on the My Account page? =
 To prevent customers from prematurely creating invoices, the default setting is that a customer can only see/download an invoice from an order that already has an invoice - either created automatically for the email attachment, or manually by the shop manager. This means that ultimately the shop mananger determines whether an invoice is available to the customer. If you want to make the invoice available to everyone you can either of the following:
@@ -181,6 +175,14 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.4.9 =
+* Feature: Order number and date are now displayed by default in the Simple template (invoice number and date still optional)
+* Feature: Display Customer/Order notes with a simple shorthand (see FAQ)
+* Translations: Added Brazilian Portugese (thanks Victor Debone!)
+* Tweak: Fail more gracefully when there are errors during PDF generation
+* Tweak: added template type class to template output body
+* Tweak: cleaned up Simple template style.css
 
 = 1.4.8 =
 * Translations: Added Finnish (Thanks Sami Mäkelä/Contrast.fi!)

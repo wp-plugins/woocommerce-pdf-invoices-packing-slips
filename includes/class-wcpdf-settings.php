@@ -382,19 +382,28 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			);
 
 			add_settings_field(
+				'display_date',
+				__( 'Display invoice date', 'wpo_wcpdf' ),
+				array( &$this, 'checkbox_element_callback' ),
+				$option,
+				'template_settings',
+				array(
+					'menu'				=> $option,
+					'id'				=> 'display_date',
+					'value' 			=> 'invoice_date',
+				)
+			);
+
+			add_settings_field(
 				'display_number',
-				__( 'Number to display on invoice', 'wpo_wcpdf' ),
-				array( &$this, 'select_element_callback' ),
+				__( 'Display built-in sequential invoice number', 'wpo_wcpdf' ),
+				array( &$this, 'checkbox_element_callback' ),
 				$option,
 				'template_settings',
 				array(
 					'menu'				=> $option,
 					'id'				=> 'display_number',
-					'options' 			=> array(
-						'order_number'	=> __( 'WooCommerce order number' , 'wpo_wcpdf' ),
-						'invoice_number'=> __( 'Built-in sequential invoice number' , 'wpo_wcpdf' ),
-					),
-					'description'		=> __( 'If you are using the WooCommerce Sequential Order Numbers plugin, select the WooCommerce order number', 'wpo_wcpdf' ),
+					'value' 			=> 'invoice_number',
 				)
 			);
 
@@ -439,24 +448,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 						),
 					),
 					'description'			=> __( 'note: if you have already created a custom invoice number format with a filter, the above settings will be ignored' , 'wpo_wcpdf' ),
-				)
-			);
-
-
-
-			add_settings_field(
-				'display_date',
-				__( 'Date to display on invoice', 'wpo_wcpdf' ),
-				array( &$this, 'select_element_callback' ),
-				$option,
-				'template_settings',
-				array(
-					'menu'				=> $option,
-					'id'				=> 'display_date',
-					'options' 			=> array(
-						'order_date'	=> __( 'Order date' , 'wpo_wcpdf' ),
-						'invoice_date'	=> __( 'Invoice date' , 'wpo_wcpdf' ),
-					),
 				)
 			);
 
@@ -623,6 +614,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		public function checkbox_element_callback( $args ) {
 			$menu = $args['menu'];
 			$id = $args['id'];
+			$value = isset( $args['value'] ) ? $args['value'] : 1;
 		
 			$options = get_option( $menu );
 		
@@ -632,7 +624,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				$current = isset( $args['default'] ) ? $args['default'] : '';
 			}
 		
-			$html = sprintf( '<input type="checkbox" id="%1$s" name="%2$s[%1$s]" value="1"%3$s />', $id, $menu, checked( 1, $current, false ) );
+			$html = sprintf( '<input type="checkbox" id="%1$s" name="%2$s[%1$s]" value="%3$s"%4$s />', $id, $menu, $value, checked( $value, $current, false ) );
 		
 			// Displays option description.
 			if ( isset( $args['description'] ) ) {
@@ -767,12 +759,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				
 				$html .= sprintf('<img src="%1$s" style="display:block" id="img-%4$s"/>', $attachment_src, $attachment_width, $attachment_height, $id );
 				$html .= '<div class="attachment-resolution"><p class="description">'.__('Image resolution').': '.$attachment_resolution.'dpi (default height = 3cm)</p></div>';
-				$html .= sprintf('<span class="button remove_image_button" data-input_id="%1$s">%2$s</span>', $id, $remove_button_text );
+				$html .= sprintf('<span class="button wpo_remove_image_button" data-input_id="%1$s">%2$s</span>', $id, $remove_button_text );
 			}
 
 			$html .= sprintf( '<input id="%1$s" name="%2$s[%1$s]" type="hidden" value="%3$s" />', $id, $menu, $current );
 			
-			$html .= sprintf( '<span class="button upload_image_button %4$s" data-uploader_title="%1$s" data-uploader_button_text="%2$s" data-remove_button_text="%3$s" data-input_id="%4$s">%2$s</span>', $uploader_title, $uploader_button_text, $remove_button_text, $id );
+			$html .= sprintf( '<span class="button wpo_upload_image_button %4$s" data-uploader_title="%1$s" data-uploader_button_text="%2$s" data-remove_button_text="%3$s" data-input_id="%4$s">%2$s</span>', $uploader_title, $uploader_button_text, $remove_button_text, $id );
 		
 			// Displays option description.
 			if ( isset( $args['description'] ) ) {
