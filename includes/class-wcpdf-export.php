@@ -148,8 +148,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 * Stream PDF
 		 */
 		public function stream_pdf( $template_type, $order_ids, $filename ) {
-			$pdf = $this->generate_pdf( $template_type, $order_ids );
-			$pdf->stream($filename);
+			$dompdf = $this->generate_pdf( $template_type, $order_ids );
+			$dompdf->stream($filename);
 		}
 		
 		/**
@@ -157,8 +157,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 */
 		public function get_pdf( $template_type, $order_ids ) {
 			try {
-				$pdf = $this->generate_pdf( $template_type, $order_ids );
-				return $pdf->output();				
+				$dompdf = $this->generate_pdf( $template_type, $order_ids );
+				return $dompdf->output();
 			} catch (Exception $e) {
 				echo $e->getMessage();
 				return false;
@@ -299,11 +299,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 * Attach invoice to completed order or customer invoice email
 		 */
 		public function attach_pdf_to_email ( $attachments, $status, $order ) {
-			$this->order = $order;
-
-			if ($order->post->post_type != 'shop_order') {
+			if ( in_array( $status, array( 'no_stock', 'low_stock', 'backorder' ) ) ) {
 				return; // do not process low stock notifications etc!
 			}
+			$this->order = $order;
 
 			if (!isset($this->general_settings['email_pdf']) || !isset( $status ) ) {
 				return;

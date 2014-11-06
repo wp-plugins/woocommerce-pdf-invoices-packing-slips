@@ -107,28 +107,11 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 						<a href="?page=wpo_wcpdf_options_page&tab=status" class="nav-tab <?php echo (($active_tab == 'status') ? 'nav-tab-active' : ''); ?>"><?php _e('Status','wpo_wcpdf'); ?></a>
 					</h2>
 
-					<?php do_action( 'wpo_wcpdf_before_settings_page', $active_tab ); ?>				
-
 					<?php
-					if (!class_exists('WooCommerce_PDF_IPS_Dropbox')) {
-						$dropbox_link = '<a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-dropbox/" target="_blank">WooCommerce PDF Invoices & Packing Slips to Dropbox</a>';
-						?>
-						<div class="wcpdf-dropbox" style="border: 1px solid #3D5C99; border-radius: 5px; padding: 15px 10px; margin-top: 15px; background-color: #EBF5FF;">
-							<img src="<?php echo WooCommerce_PDF_Invoices::$plugin_url . 'images/dropbox_logo.png'; ?>" style="float:left;margin-right:10px;margin-top:-5px;">
-							<?php printf( __("Upload all invoices automatically to your dropbox!<br/>Check out the %s extension.", 'wpo_wcpdf'), $dropbox_link );?> <br />
-						</div>
-						<?php
-					} 
+					do_action( 'wpo_wcpdf_before_settings_page', $active_tab );
 
-					if (!class_exists('WooCommerce_PDF_IPS_Templates') && $active_tab == 'template') {
-						$template_link = '<a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-premium-templates/" target="_blank">wpovernight.com</a>';
-						$email_link = '<a href="mailto:support@wpovernight.com">support@wpovernight.com</a>'
-						?>
-						<div class="wcpdf-pro-templates" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-top: 15px; background-color: #eee;">
-							<?php printf( __("Looking for more advanced templates? Check out the Premium PDF Invoice & Packing Slips templates at %s.", 'wpo_wcpdf'), $template_link );?> <br />
-							<?php printf( __("For custom templates, contact us at %s.", 'wpo_wcpdf'), $email_link );?>
-						</div>
-						<?php
+					if ( !( class_exists('WooCommerce_PDF_IPS_Pro') && class_exists('WooCommerce_PDF_IPS_Dropbox') && class_exists('WooCommerce_PDF_IPS_Templates') ) ) {
+						include('wcpdf-extensions.php');
 					}
 
 					if ( $active_tab=='status' ) {
@@ -285,7 +268,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					'menu'			=> $option,
 					'id'			=> 'template_path',
 					'options' 		=> $this->find_templates(),
-					'description'	=> sprintf( __( 'Want to use your own template? Copy all the files from <code>%s</code> to <code>%s</code> to customize them' , 'wpo_wcpdf' ), $plugin_template_path, $theme_template_path),
+					'description'	=> sprintf( __( 'Want to use your own template? Copy all the files from <code>%s</code> to your (child) theme in <code>%s</code> to customize them' , 'wpo_wcpdf' ), $plugin_template_path, $theme_template_path),
 				)
 			);			
 
@@ -786,6 +769,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			$fields = $args['fields'];
 			$options = get_option( $menu );
 
+			echo '<table>';
 			foreach ($fields as $key => $field) {
 				$id = $args['id'] . '_' . $key;
 
@@ -797,10 +781,14 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 
 				$title = $field['title'];
 				$size = $field['size'];
-				$description = isset( $field['description'] ) ? '<span style="font-style:italic; margin-left:5px;">'.$field['description'].'</span>' : '';
+				$description = isset( $field['description'] ) ? '<span style="font-style:italic;">'.$field['description'].'</span>' : '';
 
-				printf( '<span style="display:inline-block; width: 5em;">%1$s:</span><input type="text" id="%2$s" name="%3$s[%2$s]" value="%4$s" size="%5$s"/>%6$s<br/>', $title, $id, $menu, $current, $size, $description );
+				echo '<tr>';
+				printf( '<td style="padding:0 1em 0 0; ">%1$s:</td><td style="padding:0;"><input type="text" id="%2$s" name="%3$s[%2$s]" value="%4$s" size="%5$s"/></td><td style="padding:0 0 0 1em;">%6$s</td>', $title, $id, $menu, $current, $size, $description );
+				echo '</tr>';
 			}
+			echo '</table>';
+
 		
 			// Displays option description.
 			if ( isset( $args['description'] ) ) {

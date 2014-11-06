@@ -6,7 +6,7 @@
 		if( $wpo_wcpdf->get_header_logo_id() ) {
 			$wpo_wcpdf->header_logo();
 		} else {
-			_e( 'Invoice', 'wpo_wcpdf' );
+			echo apply_filters( 'wpo_wcpdf_invoice_title', __( 'Invoice', 'wpo_wcpdf' ) );
 		}
 		?>
 		</td>
@@ -18,7 +18,7 @@
 	<tr>
 		<td>
 			<h3 class="document-type-label">
-			<?php if( $wpo_wcpdf->get_header_logo_id() ) _e( 'Invoice', 'wpo_wcpdf' );	?>
+			<?php if( $wpo_wcpdf->get_header_logo_id() ) echo apply_filters( 'wpo_wcpdf_invoice_title', __( 'Invoice', 'wpo_wcpdf' ) ); ?>
 			</h3>
 			<?php do_action( 'wpo_wcpdf_after_document_label', 'invoice' ); ?>
 		</td>
@@ -49,6 +49,8 @@
 		</td>
 	</tr>
 </table><!-- head container -->
+
+<?php do_action( 'wpo_wcpdf_before_order_details', 'invoice' ); ?>
 
 <table class="order-details">
 	<thead>
@@ -92,6 +94,8 @@
 		</tr>
 	</tfoot>
 </table><!-- order-details -->
+
+<?php do_action( 'wpo_wcpdf_after_order_details', 'invoice' ); ?>
 
 <table class="notes container">
 	<tr>
