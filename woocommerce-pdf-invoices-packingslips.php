@@ -556,8 +556,8 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				return apply_filters( 'wpo_wcpdf_order_discount', $discount );
 			}
 		}
-		public function order_discount( $type = 'total' ) {
-			$discount = $this->get_order_discount( $type );
+		public function order_discount( $type = 'total', $tax = 'incl' ) {
+			$discount = $this->get_order_discount( $type, $tax );
 			echo $discount['value'];
 		}
 
