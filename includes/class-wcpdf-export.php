@@ -41,6 +41,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				}
 			}
 
+			if ( file_exists( $this->template_path . '/template-functions.php' ) ) {
+				require_once( $this->template_path . '/template-functions.php' );
+			}
+
 			add_action( 'wp_ajax_generate_wpo_wcpdf', array($this, 'generate_pdf_ajax' ));
 			add_filter( 'woocommerce_email_attachments', array( $this, 'attach_pdf_to_email' ), 99, 3);
 
@@ -62,8 +66,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			$output_html = array();
 			foreach ($order_ids as $order_id) {
-				do_action( 'wpo_wcpdf_process_template_order', $template_type, $order_id );
 				$this->order = new WC_Order( $order_id );
+				do_action( 'wpo_wcpdf_process_template_order', $template_type, $order_id );
+
 				$template = $this->template_path . '/' . $template_type . '.php';
 				$template = apply_filters( 'wpo_wcpdf_template_file', $template, $template_type );
 
@@ -82,6 +87,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				if ( $template_type == 'invoice' ) {
 					update_post_meta( $order_id, '_wcpdf_invoice_exists', 1 );
 				}
+
 
 				// Wipe post from cache
 				wp_cache_delete( $order_id, 'posts' );
@@ -115,6 +121,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			// clean up special characters
 			$complete_document = utf8_decode(mb_convert_encoding($complete_document, 'HTML-ENTITIES', 'UTF-8'));
 
+
 			return $complete_document;
 		}
 
@@ -125,6 +132,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$paper_size = apply_filters( 'wpo_wcpdf_paper_format', $this->template_settings['paper_size'], $template_type );
 			$paper_orientation = apply_filters( 'wpo_wcpdf_paper_orientation', 'portrait', $template_type);
 
+			do_action( 'wpo_wcpdf_before_pdf', $template_type );
 			if ( !class_exists('DOMPDF') ) {
 				// extra check to avoid clashes with other plugins using DOMPDF
 				// This could have unwanted side-effects when the version that's already
@@ -137,6 +145,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$dompdf->load_html($this->process_template( $template_type, $order_ids ));
 			$dompdf->set_paper( $paper_size, $paper_orientation );
 			$dompdf->render();
+			do_action( 'wpo_wcpdf_after_pdf', $template_type );
 
 			// Try to clean up a bit of memory
 			unset($complete_pdf);
@@ -211,8 +220,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$template_type = $_GET['template_type'];
 			// die($this->process_template( $template_type, $order_ids )); // or use the filter switch below!
 			
-			do_action( 'wpo_wcpdf_before_pdf', $template_type );
-
 			if (apply_filters('wpo_wcpdf_output_html', false, $template_type)) {
 				// Output html to browser for debug
 				// NOTE! images will be loaded with the server path by default
@@ -223,8 +230,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			if ( !($invoice = $this->get_pdf( $template_type, $order_ids )) ) {
 				exit;
 			}
-
-			do_action( 'wpo_wcpdf_after_pdf', $template_type );
 
 			$filename = $this->build_filename( $template_type, $order_ids, 'download' );
 
@@ -304,23 +309,23 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 			$this->order = $order;
 
-			if (!isset($this->general_settings['email_pdf']) || !isset( $status ) ) {
+			if ( !isset( $status ) ) {
 				return;
 			}
 
-			// clear temp folder (from http://stackoverflow.com/a/13468943/1446634)
 			$tmp_path = apply_filters( 'wpo_wcpdf_tmp_path', WooCommerce_PDF_Invoices::$plugin_path . 'tmp/' );
-			array_map('unlink', ( glob( $tmp_path.'*' ) ? glob( $tmp_path.'*' ) : array() ) );
 
+			// clear pdf files from temp folder (from http://stackoverflow.com/a/13468943/1446634)
+			array_map('unlink', ( glob( $tmp_path.'*.pdf' ) ? glob( $tmp_path.'*.pdf' ) : array() ) );
+
+			// set allowed statuses for invoices
+			$invoice_allowed = isset($this->general_settings['email_pdf']) ? array_keys( $this->general_settings['email_pdf'] ) : array();
 			$documents = array(
-				'invoice'	=>  apply_filters( 'wpo_wcpdf_email_allowed_statuses', array_keys( $this->general_settings['email_pdf'] ) ), // Relevant (default) statuses: new_order, customer_invoice, customer_processing_order, customer_completed_order
+				'invoice'	=>  apply_filters( 'wpo_wcpdf_email_allowed_statuses', $invoice_allowed ), // Relevant (default) statuses: new_order, customer_invoice, customer_processing_order, customer_completed_order
 			);
-
 			$documents = apply_filters('wpo_wcpdf_attach_documents', $documents );
 			
-
 			foreach ($documents as $template_type => $allowed_statuses ) {
-
 				// convert 'lazy' status name
 				foreach ($allowed_statuses as $key => $order_status) {
 					if ($order_status == 'completed' || $order_status == 'processing') {
@@ -330,17 +335,20 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 				// legacy filter, use wpo_wcpdf_custom_attachment_condition instead!
 				$attach_invoice = apply_filters('wpo_wcpdf_custom_email_condition', true, $order, $status );
+				if ( $template_type == 'invoice' && !$attach_invoice ) {
+					// don't attach invoice, continue with other documents
+					continue;
+				}
 
 				// use this filter to add an extra condition - return false to disable the PDF attachment
 				$attach_document = apply_filters('wpo_wcpdf_custom_attachment_condition', true, $order, $status, $template_type );
-
-				if( in_array( $status, $allowed_statuses ) && !( ( $template_type == 'invoice' ) && !$attach_invoice ) && $attach_document ) {
+				if( in_array( $status, $allowed_statuses ) && $attach_document ) {
 					// create pdf data
 					$pdf_data = $this->get_pdf( $template_type, (array) $order->id );
 
 					if ( !$pdf_data ) {
-						// something went wrong
-						break;
+						// something went wrong, continue trying with other documents
+						continue;
 					}
 
 					// compose filename
