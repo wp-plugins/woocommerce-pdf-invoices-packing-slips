@@ -1,0 +1,140 @@
+#woocommerce-delivery-notes-box .inside {
+	text-align: left;
+	position: relative;
+}
+#woocommerce-delivery-notes-box .inside ul {
+	overflow: hidden;
+	margin: 0px;
+}
+#woocommerce-delivery-notes-box .inside ul li {
+	float: left;
+	margin: 3px;
+}
+#woocommerce-delivery-notes-box .inside img.loading {
+	position: absolute;
+	right: 7px;
+	top: 0px;
+}
+#woocommerce-delivery-notes-box .inside img.loading,
+.type-shop_order .column-order_actions img.loading {
+	display: none;
+	vertical-align: middle;
+}
+.type-shop_order .column-order_actions img.loading {
+	float: left;
+	margin-top: 3px;
+}
+.type-shop_order .column-order_actions .print-preview-button span {
+	display:  none;
+}
+#company-logo-placeholder {
+	display: block;
+}
+#company-logo-placeholder.loading {
+	background-image: url("../../../../wp-admin/images/wpspin_light.gif");
+	background-repeat: no-repeat; 
+	height: 20px;
+}
+#company-logo-placeholder img {
+	cursor: pointer;
+}
+
+.type-shop_order .column-order_actions a.button.wpo_wcpdf {
+	padding: 0 2px;
+}
+
+.type-shop_order .column-order_actions a.button.wpo_wcpdf img {
+	width: 16px;
+}
+
+.widefat .column-pdf_invoice_number {
+	width: 110px;
+}
+
+/* Settings page styles */
+#img-header_logo {
+	max-height: 200px;
+	width: auto;
+}
+
+span.wpo-warning {
+	display: inline-block;
+	border: 1px solid red;
+	border-left: 4px solid red;
+	padding: 5px 15px;
+	background-color: white;
+}
+.wcpdf-extensions-ad {
+	position: relative;
+	min-height: 90px;
+	border: 1px solid #3D5C99;
+	background-color: #EBF5FF;	
+	border-radius: 5px;
+	padding: 15px;
+	padding-left: 100px;
+	margin-top: 15px;
+}
+
+img.wpo-helper {
+	position: absolute;
+	top: -20px;
+	left: 3px;
+}
+
+.wcpdf-extensions-ad h3 {
+	margin: 0;
+}
+
+.wcpdf-extensions-ad ul {
+	margin: 0;
+	margin-left: 1.5em;
+}
+
+.extensions li {
+	margin: 0;
+}
+
+.extensions li ul {
+	list-style-type: square;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.extensions > li:before { 
+	content: "";
+	border-color: transparent transparent transparent #111;
+	border-style: solid;
+	border-width: 0.35em 0.35em 0.35em 0.45em;
+	display: block;
+	height: 0;
+	width: 0;
+	left: -1em;
+	top: 0.9em;
+	position: relative;
+}
+
+.extensions .expanded:before {
+	border-color: #111 transparent transparent transparent;
+	left: -1.17em;
+	border-width: 0.45em 0.45em 0.35em 0.35em !important;
+}
+
+.extensions .more {
+	padding: 10px;
+	background-color: white;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+}
+
+.extensions table td {
+	vertical-align: top;
+}
+.dropbox-logo {
+	margin-bottom: -10px;
+	margin-right: 10px;
+}
+.cloud-logo {
+	margin-bottom: -10px;
+	margin-top: -5px;
+	margin-right: 10px;
+}
