@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.4.13
+ * Version: 1.4.14
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.4.13'; 
+			self::$version = '1.4.14'; 
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -43,8 +43,21 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 
 		/**
 		 * Load the translation / textdomain files
+		 * 
+		 * Note: the first-loaded translation file overrides any following ones if the same translation is present
 		 */
 		public function translations() {
+			$locale = apply_filters( 'plugin_locale', get_locale(), 'wpo_wcpdf' );
+			$dir    = trailingslashit( WP_LANG_DIR );
+
+			/**
+			 * Frontend/global Locale. Looks in:
+			 *
+			 * 		- WP_LANG_DIR/woocommerce-pdf-invoices-packing-slips/wpo_wcpdf-LOCALE.mo
+			 * 	 	- woocommerce-pdf-invoices-packing-slips/languages/wpo_wcpdf-LOCALE.mo (which if not found falls back to:)
+			 * 	 	- WP_LANG_DIR/plugins/wpo_wcpdf-LOCALE.mo
+			 */
+			load_textdomain( 'wpo_wcpdf', $dir . 'woocommerce-pdf-invoices-packing-slips/wpo_wcpdf-' . $locale . '.mo' );
 			load_plugin_textdomain( 'wpo_wcpdf', false, dirname( self::$plugin_basename ) . '/languages' );
 		}
 
