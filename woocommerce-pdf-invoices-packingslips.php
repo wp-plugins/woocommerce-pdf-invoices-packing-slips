@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.4.14
+ * Version: 1.5.0
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,12 +33,22 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.4.14'; 
+			self::$version = '1.5.0';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
 			add_action( 'init', array( $this, 'load_classes' ) );
 
+			// run lifecycle methods
+			if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+				// check if upgrading from versionless (1.4.14 and older)
+				if ( get_option('wpo_wcpdf_general_settings') && get_option('wpo_wcpdf_version') === false ) {
+					// tag 'versionless', so that we can apply necessary upgrade settings
+					add_option( 'wpo_wcpdf_version', 'versionless' );
+				}
+
+				add_action( 'wp_loaded', array( $this, 'do_install' ) );
+			}
 		}
 
 		/**
@@ -114,6 +124,76 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		
 			echo $message;
 		}
+
+		/** Lifecycle methods *******************************************************
+		 * Because register_activation_hook only runs when the plugin is manually
+		 * activated by the user, we're checking the current version against the
+		 * version stored in the database
+		****************************************************************************/
+
+		/**
+		 * Handles version checking
+		 */
+		public function do_install() {
+			$version_setting = 'wpo_wcpdf_version';
+			$installed_version = get_option( $version_setting );
+
+			// installed version lower than plugin version?
+			if ( version_compare( $installed_version, self::$version, '<' ) ) {
+
+				if ( ! $installed_version ) {
+					$this->install();
+				} else {
+					$this->upgrade( $installed_version );
+				}
+
+				// new version number
+				update_option( $version_setting, self::$version );
+			}
+		}
+
+
+		/**
+		 * Plugin install method. Perform any installation tasks here
+		 */
+		protected function install() {
+			// Create temp folders
+			$tmp_base = $this->export->get_tmp_base();
+
+			// check if tmp folder exists => if not, initialize 
+			if ( !@is_dir( $tmp_base ) ) {
+				$this->export->init_tmp( $tmp_base );
+			}
+
+		}
+
+
+		/**
+		 * Plugin upgrade method.  Perform any required upgrades here
+		 *
+		 * @param string $installed_version the currently installed version
+		 */
+		protected function upgrade( $installed_version ) {
+			if ( $installed_version == 'versionless') { // versionless = 1.4.14 and older
+				// We're upgrading from an old version, so we're enabling the option to use the plugin tmp folder.
+				// This is not per se the 'best' solution, but the good thing is that nothing is changed ]
+				// and nothing will be broken (that wasn't broken before)
+				$default = array( 'old_tmp' => 1 );
+				update_option( 'wpo_wcpdf_debug_settings', $default );
+			}
+
+			// sync fonts on every upgrade!
+			$debug_settings = get_option( 'wpo_wcpdf_debug_settings' ); // get temp setting
+
+			// do not copy if old_tmp function active!
+			if ( !isset($this->debug_settings['old_tmp']) ) {
+				$tmp_base = $this->export->get_tmp_base();
+
+				$font_path = $tmp_base . 'fonts/';
+				$this->export->copy_fonts( $font_path );
+			}
+			
+		}		
 
 		/***********************************************************************/
 		/********************** GENERAL TEMPLATE FUNCTIONS *********************/
@@ -468,7 +548,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 */
 		public function get_woocommerce_totals() {
 			// get totals and remove the semicolon
-			$totals = apply_filters( 'wpo_wcpdf_raw_order_totals', $this->export->order->get_order_item_totals() );
+			$totals = apply_filters( 'wpo_wcpdf_raw_order_totals', $this->export->order->get_order_item_totals(), $this->export->order );
 			
 			// remove the colon for every label
 			foreach ( $totals as $key => $total ) {
@@ -480,7 +560,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				$totals[$key]['label'] = $label;
 			}
 	
-			return apply_filters( 'wpo_wcpdf_woocommerce_totals', $totals );
+			return apply_filters( 'wpo_wcpdf_woocommerce_totals', $totals, $this->export->order );
 		}
 		
 		/**
