@@ -25,6 +25,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$this->order = new WC_Order('');
 			$this->general_settings = get_option('wpo_wcpdf_general_settings');
 			$this->template_settings = get_option('wpo_wcpdf_template_settings');
+			$this->debug_settings = get_option('wpo_wcpdf_debug_settings');
 
 			$this->template_directory_name = 'pdf';
 			$this->template_base_path = (defined('WC_TEMPLATE_PATH')?WC_TEMPLATE_PATH:$woocommerce->template_url) . $this->template_directory_name . '/';
@@ -53,6 +54,157 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				add_filter( 'wpo_wcpdf_invoice_number', array( $this, 'format_invoice_number' ), 20, 4 );
 			}
 
+			if ( isset($this->debug_settings['enable_debug'])) {
+				$this->enable_debug();
+			}
+
+			if ( isset($this->debug_settings['html_output'])) {
+				add_filter( 'wpo_wcpdf_output_html', '__return_true' );
+				add_filter( 'wpo_wcpdf_use_path', '__return_false' );
+			}
+
+			if ( class_exists('WC_Subscriptions') ) {
+				add_action( 'woocommerce_subscriptions_renewal_order_created', array( $this, 'reset_invoice_data' ), 10, 4 );
+			}
+
+		}
+
+		/**
+		 * Install/create plugin tmp folders
+		 */
+		public function init_tmp ( $tmp_base ) {
+			// create plugin base temp folder
+			@mkdir( $tmp_base );
+
+			// create subfolders & protect
+			$subfolders = array( 'attachments', 'fonts', 'dompdf' );
+			foreach ( $subfolders as $subfolder ) {
+				$path = $tmp_base . $subfolder . '/';
+				@mkdir( $path );
+
+				// copy font files
+				if ( $subfolder == 'fonts' ) {
+					$this->copy_fonts( $path );
+				}
+
+				// create .htaccess file and empty index.php to protect in case an open webfolder is used!
+				@file_put_contents( $path . '.htaccess', 'deny from all' );
+				@touch( $path . 'index.php' );
+			}
+
+		}
+
+		/**
+		 * Copy DOMPDF fonts to wordpress tmp folder
+		 */
+		public function copy_fonts ( $path ) {
+			$dompdf_font_dir = WooCommerce_PDF_Invoices::$plugin_path . "lib/dompdf/lib/fonts/";
+
+			// first try the easy way with glob!
+			if ( function_exists('glob') ) {
+				$files = glob($dompdf_font_dir."*.*");
+				foreach($files as $file){
+					if(!is_dir($file) && is_readable($file)) {
+						$dest = $path . basename($file);
+						copy($file, $dest);
+					}
+				}
+			} else {
+				// fallback method using font cache file (glob is disabled on some servers with disable_functions)
+				$font_cache_file = $dompdf_font_dir . "dompdf_font_family_cache.php";
+				$font_cache_dist_file = $dompdf_font_dir . "dompdf_font_family_cache.dist.php";
+				$fonts = @require_once( $font_cache_file );
+				$extensions = array( '.ttf', '.ufm', '.ufm.php', '.afm' );
+
+				foreach ($fonts as $font_family => $filenames) {
+					foreach ($filenames as $filename) {
+						foreach ($extensions as $extension) {
+							$file = $filename.$extension;
+							if (file_exists($file)) {
+								$dest = $path . basename($file);
+								copy($file, $dest);
+							}
+						}
+					}
+				}
+
+				// copy cache files separately
+				copy($font_cache_file, $path.basename($font_cache_file));
+				copy($font_cache_dist_file, $path.basename($font_cache_dist_file));
+			}
+
+		}
+
+		/**
+		 * Return tmp path for different plugin processes
+		 */
+		public function tmp_path ( $type = '' ) {
+			// get temp setting
+			$old_tmp = isset($this->debug_settings['old_tmp']);
+
+			$tmp_base = $this->get_tmp_base();
+			if (!$old_tmp) {
+				// check if tmp folder exists => if not, initialize 
+				if ( !@is_dir( $tmp_base ) ) {
+					$this->init_tmp( $tmp_base );
+				}
+			}
+			
+			if ( empty( $type ) ) {
+				return $tmp_base;
+			}
+
+			switch ( $type ) {
+				case 'DOMPDF_TEMP_DIR':
+					// original value : sys_get_temp_dir()
+					// 1.5+           : $tmp_base . 'dompdf'
+					$tmp_path = $old_tmp ? sys_get_temp_dir() : $tmp_base . 'dompdf';
+					break;
+				case 'DOMPDF_FONT_DIR': // NEEDS TRAILING SLASH!
+					// original value : DOMPDF_DIR."/lib/fonts/"
+					// 1.5+           : $tmp_base . 'fonts/'
+					$tmp_path = $old_tmp ? DOMPDF_DIR."/lib/fonts/" : $tmp_base . 'fonts/';
+					break;
+				case 'DOMPDF_FONT_CACHE':
+					// original value : DOMPDF_FONT_DIR
+					// 1.5+           : $tmp_base . 'fonts'
+					$tmp_path = $old_tmp ? DOMPDF_FONT_DIR : $tmp_base . 'fonts';
+					break;
+				case 'attachments':
+					// original value : WooCommerce_PDF_Invoices::$plugin_path . 'tmp/'
+					// 1.5+           : $tmp_base . 'attachments/'
+					$tmp_path = $old_tmp ? WooCommerce_PDF_Invoices::$plugin_path . 'tmp/' : $tmp_base . 'attachments/';
+					break;
+				default:
+					$tmp_path = $tmp_base . $type;
+					break;
+			}
+
+			// double check for existence, in case tmp_base was installed, but subfolder not created
+			if ( !@is_dir( $tmp_path ) ) {
+				@mkdir( $tmp_path );
+			}
+
+			return $tmp_path;
+		}
+
+		/**
+		 * return the base tmp folder (usually uploads)
+		 */
+		public function get_tmp_base () {
+			// wp_upload_dir() is used to set the base temp folder, under which a
+			// 'wpo_wcpdf' folder and several subfolders are created
+			// 
+			// wp_upload_dir() will:
+			// * default to WP_CONTENT_DIR/uploads
+			// * UNLESS the ‘UPLOADS’ constant is defined in wp-config (http://codex.wordpress.org/Editing_wp-config.php#Moving_uploads_folder)
+			// 
+			// May also be overridden by the wpo_wcpdf_tmp_path filter
+
+			$upload_dir = wp_upload_dir();
+			$upload_base = trailingslashit( $upload_dir['basedir'] );
+			$tmp_base = trailingslashit( apply_filters( 'wpo_wcpdf_tmp_path', $upload_base . 'wpo_wcpdf/' ) );
+			return $tmp_base;
 		}
 		
 		/**
@@ -95,6 +247,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			$print_script = "<script language=javascript>window.onload = function(){ window.print(); };</script>";
+			// <div style="page-break-before: always;"></div>
 			$page_break = "\n<div style=\"page-break-before: always;\"></div>\n";
 
 
@@ -316,7 +469,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			$this->order = $order;
 
-			$tmp_path = apply_filters( 'wpo_wcpdf_tmp_path', WooCommerce_PDF_Invoices::$plugin_path . 'tmp/' );
+			$tmp_path = $this->tmp_path('attachments');
 
 			// clear pdf files from temp folder (from http://stackoverflow.com/a/13468943/1446634)
 			array_map('unlink', ( glob( $tmp_path.'*.pdf' ) ? glob( $tmp_path.'*.pdf' ) : array() ) );
@@ -417,6 +570,17 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
 
 			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->order->get_order_number(), $this->order->id, $this->order->order_date );
+		}
+
+		/**
+		 * Reset invoice data for WooCommerce subscription renewal orders
+		 * https://wordpress.org/support/topic/subscription-renewal-duplicate-invoice-number?replies=6#post-6138110
+		 */
+		public function reset_invoice_data ( $renewal_order, $original_order, $product_id, $new_order_role ) {
+			// delete invoice number, invoice date & invoice exists meta
+			delete_post_meta( $renewal_order->id, '_wcpdf_invoice_number' );
+			delete_post_meta( $renewal_order->id, '_wcpdf_invoice_date' );
+			delete_post_meta( $renewal_order->id, '_wcpdf_invoice_exists' );
 		}
 
 		public function format_invoice_number( $invoice_number, $order_number, $order_id, $order_date ) {
@@ -563,11 +727,11 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					
 					}
 
-					$data_list[] = apply_filters( 'wpo_wcpdf_order_item_data', $data );
+					$data_list[] = apply_filters( 'wpo_wcpdf_order_item_data', $data, $this->order );
 				}
 			}
 
-			return apply_filters( 'wpo_wcpdf_order_items_data', $data_list );
+			return apply_filters( 'wpo_wcpdf_order_items_data', $data_list, $this->order );
 		}
 		
 		/**
@@ -743,6 +907,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			return $thumbnail;
 		}
 		
+		public function enable_debug () {
+			error_reporting( E_ALL );
+			ini_set( 'display_errors', 1 );
+		}
 	}
 
 }
