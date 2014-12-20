@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.0
+ * Version: 1.5.1
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.0';
+			self::$version = '1.5.1';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -176,7 +176,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		protected function upgrade( $installed_version ) {
 			if ( $installed_version == 'versionless') { // versionless = 1.4.14 and older
 				// We're upgrading from an old version, so we're enabling the option to use the plugin tmp folder.
-				// This is not per se the 'best' solution, but the good thing is that nothing is changed ]
+				// This is not per se the 'best' solution, but the good thing is that nothing is changed
 				// and nothing will be broken (that wasn't broken before)
 				$default = array( 'old_tmp' => 1 );
 				update_option( 'wpo_wcpdf_debug_settings', $default );
@@ -185,9 +185,14 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			// sync fonts on every upgrade!
 			$debug_settings = get_option( 'wpo_wcpdf_debug_settings' ); // get temp setting
 
-			// do not copy if old_tmp function active!
-			if ( !isset($this->debug_settings['old_tmp']) ) {
+			// do not copy if old_tmp function active! (double check for slow databases)
+			if ( !( isset($this->debug_settings['old_tmp']) || $installed_version == 'versionless' ) ) {
 				$tmp_base = $this->export->get_tmp_base();
+
+				// check if tmp folder exists => if not, initialize 
+				if ( !@is_dir( $tmp_base ) ) {
+					$this->export->init_tmp( $tmp_base );
+				}
 
 				$font_path = $tmp_base . 'fonts/';
 				$this->export->copy_fonts( $font_path );
