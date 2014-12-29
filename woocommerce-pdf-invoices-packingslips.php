@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.1
+ * Version: 1.5.2
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,14 +33,14 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.1';
+			self::$version = '1.5.2';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
 			add_action( 'init', array( $this, 'load_classes' ) );
 
 			// run lifecycle methods
-			if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+			if ( is_admin() && ! defined( 'DOING_AJAX' ) && $this->is_woocommerce_activated() ) {
 				// check if upgrading from versionless (1.4.14 and older)
 				if ( get_option('wpo_wcpdf_general_settings') && get_option('wpo_wcpdf_version') === false ) {
 					// tag 'versionless', so that we can apply necessary upgrade settings
