@@ -656,9 +656,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$data_list = array();
 		
 			if( sizeof( $items ) > 0 ) {
-				foreach ( $items as $item ) {
+				foreach ( $items as $item_id => $item ) {
 					// Array with data for the pdf template
 					$data = array();
+
+					// Set the item_id
+					$data['item_id'] = $item_id;
 					
 					// Set the id
 					$data['product_id'] = $item['product_id'];
@@ -676,7 +679,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					$data['single_line_total'] = $this->wc_price( $item['line_total'] / $quantity_divider );
 					$data['line_tax'] = $this->wc_price( $item['line_tax'] );
 					$data['single_line_tax'] = $this->wc_price( $item['line_tax'] / $quantity_divider );
-					$data['tax_rates'] = $this->get_tax_rate( $item['tax_class'], $item['line_total'], $item['line_tax'] );
+					
+					$line_tax_data = maybe_unserialize( isset( $item['line_tax_data'] ) ? $item['line_tax_data'] : '' );
+					$data['tax_rates'] = $this->get_tax_rate( $item['tax_class'], $item['line_total'], $item['line_tax'], $line_tax_data );
 					
 					// Set the line subtotal (=before discount)
 					$data['line_subtotal'] = $this->wc_price( $item['line_subtotal'] );
@@ -777,12 +782,28 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 * @param  string $tax_class tax class slug
 		 * @return string $tax_rates imploded list of tax rates
 		 */
-		public function get_tax_rate( $tax_class, $line_total, $line_tax ) {
-			if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 ) {
-				// WC 2.1 or newer is used
-				if ( $line_tax == 0 ) {
-					return '-'; // no need to determine tax rate...
+		public function get_tax_rate( $tax_class, $line_total, $line_tax, $line_tax_data = '' ) {
+			if ( $line_tax == 0 ) {
+				return '-'; // no need to determine tax rate...
+			}
+
+			// first try the easy wc2.2 way, using line_tax_data
+			if ( !empty( $line_tax_data ) ) {
+				$tax_rates = array();
+
+				$line_taxes = $line_tax_data['total'];
+				foreach ( $line_taxes as $tax_id => $tax ) {
+					if ( !empty($tax) && $tax != 0 ) {
+						$tax_rates[] = $this->get_tax_rate_by_id( $tax_id ) . ' %';
+					}
 				}
+
+				$tax_rates = implode(' ,', $tax_rates );
+				return $tax_rates;
+			}
+
+			if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 && !apply_filters( 'wpo_wcpdf_calculate_tax_rate', false ) ) {
+				// WC 2.1 or newer is used
 
 				// if (empty($tax_class))
 				// $tax_class = 'standard';// does not appear to work anymore - get_rates does accept an empty tax_class though!
@@ -807,7 +828,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 				$tax_rates = implode(' ,', $tax_rates );
 			} else {
-				// Backwards compatibility: calculate tax from line items
+				// Backwards compatibility/fallback: calculate tax from line items
 				if ( $line_total != 0) {
 					$tax_rates = round( ($line_tax / $line_total)*100, 1 ).' %';
 				} else {
