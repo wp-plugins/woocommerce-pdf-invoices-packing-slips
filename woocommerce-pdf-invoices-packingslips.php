@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.4.14
+ * Version: 1.5.3
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,12 +33,22 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.4.14'; 
+			self::$version = '1.5.3';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
 			add_action( 'init', array( $this, 'load_classes' ) );
 
+			// run lifecycle methods
+			if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+				// check if upgrading from versionless (1.4.14 and older)
+				if ( get_option('wpo_wcpdf_general_settings') && get_option('wpo_wcpdf_version') === false ) {
+					// tag 'versionless', so that we can apply necessary upgrade settings
+					add_option( 'wpo_wcpdf_version', 'versionless' );
+				}
+
+				add_action( 'wp_loaded', array( $this, 'do_install' ) );
+			}
 		}
 
 		/**
@@ -114,6 +124,86 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		
 			echo $message;
 		}
+
+		/** Lifecycle methods *******************************************************
+		 * Because register_activation_hook only runs when the plugin is manually
+		 * activated by the user, we're checking the current version against the
+		 * version stored in the database
+		****************************************************************************/
+
+		/**
+		 * Handles version checking
+		 */
+		public function do_install() {
+			// only install when woocommerce is active
+			if ( !$this->is_woocommerce_activated() ) {
+				return;
+			}
+
+			$version_setting = 'wpo_wcpdf_version';
+			$installed_version = get_option( $version_setting );
+
+			// installed version lower than plugin version?
+			if ( version_compare( $installed_version, self::$version, '<' ) ) {
+
+				if ( ! $installed_version ) {
+					$this->install();
+				} else {
+					$this->upgrade( $installed_version );
+				}
+
+				// new version number
+				update_option( $version_setting, self::$version );
+			}
+		}
+
+
+		/**
+		 * Plugin install method. Perform any installation tasks here
+		 */
+		protected function install() {
+			// Create temp folders
+			$tmp_base = $this->export->get_tmp_base();
+
+			// check if tmp folder exists => if not, initialize 
+			if ( !@is_dir( $tmp_base ) ) {
+				$this->export->init_tmp( $tmp_base );
+			}
+
+		}
+
+
+		/**
+		 * Plugin upgrade method.  Perform any required upgrades here
+		 *
+		 * @param string $installed_version the currently installed version
+		 */
+		protected function upgrade( $installed_version ) {
+			if ( $installed_version == 'versionless') { // versionless = 1.4.14 and older
+				// We're upgrading from an old version, so we're enabling the option to use the plugin tmp folder.
+				// This is not per se the 'best' solution, but the good thing is that nothing is changed
+				// and nothing will be broken (that wasn't broken before)
+				$default = array( 'old_tmp' => 1 );
+				update_option( 'wpo_wcpdf_debug_settings', $default );
+			}
+
+			// sync fonts on every upgrade!
+			$debug_settings = get_option( 'wpo_wcpdf_debug_settings' ); // get temp setting
+
+			// do not copy if old_tmp function active! (double check for slow databases)
+			if ( !( isset($this->debug_settings['old_tmp']) || $installed_version == 'versionless' ) ) {
+				$tmp_base = $this->export->get_tmp_base();
+
+				// check if tmp folder exists => if not, initialize 
+				if ( !@is_dir( $tmp_base ) ) {
+					$this->export->init_tmp( $tmp_base );
+				}
+
+				$font_path = $tmp_base . 'fonts/';
+				$this->export->copy_fonts( $font_path );
+			}
+			
+		}		
 
 		/***********************************************************************/
 		/********************** GENERAL TEMPLATE FUNCTIONS *********************/
@@ -424,13 +514,13 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		public function get_order_date() {
 			if ( get_post_type( $this->export->order->id ) == 'shop_order_refund' && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
 				$parent_order = new WC_Order( $parent_order_id );
-				$date = $parent_order->order_date;
+				$order_date = $parent_order->order_date;
 			} else {
-				$date = $this->export->order->order_date;
+				$order_date = $this->export->order->order_date;
 			}
 
-			$date = date_i18n( get_option( 'date_format' ), strtotime( $date ) );
-			return apply_filters( 'wpo_wcpdf_order_date', $date );
+			$date = date_i18n( get_option( 'date_format' ), strtotime( $order_date ) );
+			return apply_filters( 'wpo_wcpdf_order_date', $date, $order_date );
 		}
 		public function order_date() {
 			echo $this->get_order_date();
@@ -468,7 +558,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 */
 		public function get_woocommerce_totals() {
 			// get totals and remove the semicolon
-			$totals = apply_filters( 'wpo_wcpdf_raw_order_totals', $this->export->order->get_order_item_totals() );
+			$totals = apply_filters( 'wpo_wcpdf_raw_order_totals', $this->export->order->get_order_item_totals(), $this->export->order );
 			
 			// remove the colon for every label
 			foreach ( $totals as $key => $total ) {
@@ -480,7 +570,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				$totals[$key]['label'] = $label;
 			}
 	
-			return apply_filters( 'wpo_wcpdf_woocommerce_totals', $totals );
+			return apply_filters( 'wpo_wcpdf_woocommerce_totals', $totals, $this->export->order );
 		}
 		
 		/**
@@ -510,14 +600,15 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 */
 		public function get_order_shipping( $tax = 'excl' ) { // set $tax to 'incl' to include tax
 			if ($tax == 'excl' ) {
-				$shipping_costs = woocommerce_price ( $this->export->order->order_shipping );
+				$shipping_costs = $this->export->wc_price( $this->export->order->order_shipping );
 			} else {
-				$shipping_costs = woocommerce_price ( $this->export->order->order_shipping + $this->export->order->order_shipping_tax );
+				$shipping_costs = $this->export->wc_price( $this->export->order->order_shipping + $this->export->order->order_shipping_tax );
 			}
 
 			$shipping = array (
 				'label'	=> __('Shipping', 'wpo_wcpdf'),
 				'value'	=> $shipping_costs,
+				'tax'	=> $this->export->wc_price( $this->export->order->order_shipping_tax ),
 			);
 			return apply_filters( 'wpo_wcpdf_order_shipping', $shipping );
 		}
@@ -581,15 +672,16 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			if ( $wcfees = $this->export->order->get_fees() ) {
 				foreach( $wcfees as $id => $fee ) {
 					if ($tax == 'excl' ) {
-						$fee_price = woocommerce_price( $fee['line_total'] );
+						$fee_price = $this->export->wc_price( $fee['line_total'] );
 					} else {
-						$fee_price = woocommerce_price( $fee['line_total'] + $fee['line_tax'] );
+						$fee_price = $this->export->wc_price( $fee['line_total'] + $fee['line_tax'] );
 					}
 
-
 					$fees[ $id ] = array(
-						'label' => $fee['name'],
-						'value'	=> $fee_price
+						'label' 		=> $fee['name'],
+						'value'			=> $fee_price,
+						'line_total'	=> $this->export->wc_price($fee['line_total']),
+						'line_tax'		=> $this->export->wc_price($fee['line_tax'])
 					);
 				}
 				return $fees;
@@ -606,7 +698,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				foreach ( $this->export->order->get_taxes() as $key => $tax ) {
 					$taxes[ $key ] = array(
 						'label'					=> isset( $tax[ 'label' ] ) ? $tax[ 'label' ] : $tax[ 'name' ],
-						'value'					=> woocommerce_price( ( $tax[ 'tax_amount' ] + $tax[ 'shipping_tax_amount' ] ) ),
+						'value'					=> $this->export->wc_price( ( $tax[ 'tax_amount' ] + $tax[ 'shipping_tax_amount' ] ) ),
 						'rate_id'				=> $tax['rate_id'],
 						'tax_amount'			=> $tax['tax_amount'],
 						'shipping_tax_amount'	=> $tax['shipping_tax_amount'],
@@ -636,7 +728,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 					$total_unformatted = $this->export->order->get_order_total();
 				}
 
-				$total = woocommerce_price( ( $total_unformatted - $total_tax ) );
+				$total = $this->export->wc_price( ( $total_unformatted - $total_tax ) );
 				$label = __('Total ex. VAT');
 			} else {
 				$total = $this->export->order->get_formatted_order_total();
