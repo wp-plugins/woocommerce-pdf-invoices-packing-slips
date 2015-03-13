@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.4
+ * Version: 1.5.5
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.4';
+			self::$version = '1.5.5';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -213,7 +213,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 * Output template styles
 		 */
 		public function template_styles() {
-			$css = apply_filters( 'wpo_wcpdf_template_styles', $this->export->template_path. '/' .'style.css' );
+			$css = apply_filters( 'wpo_wcpdf_template_styles_file', $this->export->template_path. '/' .'style.css' );
 
 			ob_start();
 			if (file_exists($css)) {
@@ -291,13 +291,8 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 * Return/Show billing address
 		 */
 		public function get_billing_address() {
-			if ( $address = $this->export->order->get_formatted_billing_address() ) {
-				return apply_filters( 'wpo_wcpdf_billing_address', $address );
-			}
-
-			if ( !$address && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
-				// try parent address
-
+			// always prefer parent billing address for refunds
+			if ( get_post_type( $this->export->order->id ) == 'shop_order_refund' && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
 				// temporarily switch order to make all filters / order calls work correctly
 				$current_order = $this->export->order;
 				$this->export->order = new WC_Order( $parent_order_id );
@@ -305,7 +300,11 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				// switch back & unset
 				$this->export->order = $current_order;
 				unset($current_order);
+			} elseif ( $address = $this->export->order->get_formatted_billing_address() ) {
+				// regular shop_order
+				$address = apply_filters( 'wpo_wcpdf_billing_address', $address );
 			} else {
+				// no address
 				$address = __('N/A', 'wpo_wcpdf');
 			}
 
@@ -320,7 +319,6 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 */
 		public function get_billing_email() {
 			$billing_email = $this->export->order->billing_email;
-
 
 			if ( !$billing_email && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
 				// try parent
@@ -354,13 +352,8 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 * Return/Show shipping address
 		 */
 		public function get_shipping_address() {
-			if ( $address = $this->export->order->get_formatted_shipping_address() ) {
-				return apply_filters( 'wpo_wcpdf_shipping_address', $address );
-			}
-
-			if ( !$address && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
-				// try parent address
-
+			// always prefer parent shipping address for refunds
+			if ( get_post_type( $this->export->order->id ) == 'shop_order_refund' && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
 				// temporarily switch order to make all filters / order calls work correctly
 				$current_order = $this->export->order;
 				$this->export->order = new WC_Order( $parent_order_id );
@@ -368,7 +361,11 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				// switch back & unset
 				$this->export->order = $current_order;
 				unset($current_order);
+			} elseif ( $address = $this->export->order->get_formatted_shipping_address() ) {
+				// regular shop_order
+				$address = apply_filters( 'wpo_wcpdf_shipping_address', $address );
 			} else {
+				// no address
 				$address = __('N/A', 'wpo_wcpdf');
 			}
 

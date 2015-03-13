@@ -35,7 +35,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			$this->template_path = isset( $this->template_settings['template_path'] )?$this->template_settings['template_path']:'';
 
 			// backwards compatible template path (1.4.4+ uses relative paths instead of absolute)
-			if (strpos($this->template_path, ABSPATH) === false) {
+			$backslash_abspath = str_replace('/', '\\', ABSPATH);
+			if (strpos($this->template_path, ABSPATH) === false && strpos($this->template_path, $backslash_abspath) === false) {
 				// add site base path, double check it exists!
 				if ( file_exists( ABSPATH . $this->template_path ) ) {
 					$this->template_path = ABSPATH . $this->template_path;
@@ -339,7 +340,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			
 			// Check if all parameters are set
 			if( empty( $_GET['template_type'] ) || empty( $_GET['order_ids'] ) ) {
-				wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
+				wp_die( __( 'Some of the export parameters are missing.', 'wpo_wcpdf' ) );
 			}
 
 			// Check the user privileges
@@ -674,11 +675,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					$data['quantity'] = $item['qty'];
 
 					// Set the line total (=after discount)
-					$quantity_divider = ( $item['qty'] == 0 ) ? 1 : $item['qty']; // prevent division by zero
 					$data['line_total'] = $this->wc_price( $item['line_total'] );
-					$data['single_line_total'] = $this->wc_price( $item['line_total'] / $quantity_divider );
+					$data['single_line_total'] = $this->wc_price( $item['line_total'] / max( 1, $item['qty'] ) );
 					$data['line_tax'] = $this->wc_price( $item['line_tax'] );
-					$data['single_line_tax'] = $this->wc_price( $item['line_tax'] / $quantity_divider );
+					$data['single_line_tax'] = $this->wc_price( $item['line_tax'] / max( 1, $item['qty'] ) );
 					
 					$line_tax_data = maybe_unserialize( isset( $item['line_tax_data'] ) ? $item['line_tax_data'] : '' );
 					$data['tax_rates'] = $this->get_tax_rate( $item['tax_class'], $item['line_total'], $item['line_tax'], $line_tax_data );
@@ -732,7 +732,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					
 					}
 
-					$data_list[] = apply_filters( 'wpo_wcpdf_order_item_data', $data, $this->order );
+					$data_list[$item_id] = apply_filters( 'wpo_wcpdf_order_item_data', $data, $this->order );
 				}
 			}
 
@@ -788,7 +788,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			// first try the easy wc2.2 way, using line_tax_data
-			if ( !empty( $line_tax_data ) ) {
+			if ( !empty( $line_tax_data ) && isset($line_tax_data['total']) ) {
 				$tax_rates = array();
 
 				$line_taxes = $line_tax_data['total'];
