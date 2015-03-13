@@ -57,8 +57,19 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			if( $hook != $this->options_page_hook ) 
 				return;
 			
-			wp_enqueue_script( 'wcpdf-upload-js', plugins_url( 'js/media-upload.js' , dirname(__FILE__) ) );
-			wp_enqueue_style( 'wpo-wcpdf', WooCommerce_PDF_Invoices::$plugin_url . 'css/style.css' );
+			wp_enqueue_script(
+				'wcpdf-upload-js',
+				plugins_url( 'js/media-upload.js' , dirname(__FILE__) ),
+				array( 'jquery' ),
+				WooCommerce_PDF_Invoices::$version
+			);
+
+			wp_enqueue_style(
+				'wpo-wcpdf',
+				WooCommerce_PDF_Invoices::$plugin_url . 'css/style.css',
+				array(),
+				WooCommerce_PDF_Invoices::$version
+			);
 			wp_enqueue_media();
 		}
 	
@@ -93,18 +104,22 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				)
 			);
 
+			// add status tab last in row
+			$settings_tabs['debug'] = __('Status','wpo_wcpdf');
+
 			$active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'general';
+
 			?>
 	
 				<div class="wrap">
 					<div class="icon32" id="icon-options-general"><br /></div>
 					<h2><?php _e( 'WooCommerce PDF Invoices', 'wpo_wcpdf' ); ?></h2>
 					<h2 class="nav-tab-wrapper">
-					<?php foreach ($settings_tabs as $tab_slug => $tab_title ) {
-						printf('<a href="?page=wpo_wcpdf_options_page&tab=%1$s" class="nav-tab %2$s">%3$s</a>', $tab_slug, (($active_tab == $tab_slug) ? 'nav-tab-active' : ''), $tab_title);
+					<?php
+					foreach ($settings_tabs as $tab_slug => $tab_title ) {
+						printf('<a href="?page=wpo_wcpdf_options_page&tab=%1$s" class="nav-tab nav-tab-%1$s %2$s">%3$s</a>', $tab_slug, (($active_tab == $tab_slug) ? 'nav-tab-active' : ''), $tab_title);
 					}
 					?>
-						<a href="?page=wpo_wcpdf_options_page&tab=status" class="nav-tab <?php echo (($active_tab == 'status') ? 'nav-tab-active' : ''); ?>"><?php _e('Status','wpo_wcpdf'); ?></a>
 					</h2>
 
 					<?php
@@ -114,9 +129,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 						include('wcpdf-extensions.php');
 					}
 
-					if ( $active_tab=='status' ) {
-						$this->status_page();
-					} else {
 					?>
 					<form method="post" action="options.php">
 						<?php
@@ -128,6 +140,9 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 	
 					</form>
 					<?php
+
+					if ( $active_tab=='debug' ) {
+						$this->status_page();
 					}
 
 					do_action( 'wpo_wcpdf_after_settings_page', $active_tab ); ?>
@@ -149,7 +164,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		 */
 		
 		public function init_settings() {
-			global $woocommerce;
+			global $woocommerce, $wpo_wcpdf;
 	
 			/**************************************/
 			/*********** GENERAL SETTINGS *********/
@@ -158,8 +173,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			$option = 'wpo_wcpdf_general_settings';
 		
 			// Create option in wp_options.
-			if ( false == get_option( $option ) ) {
-				add_option( $option );
+			if ( false === get_option( $option ) ) {
+				$this->default_settings( $option );
 			}
 		
 			// Section.
@@ -222,7 +237,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				)
 			);
 
-	
 			// Register settings.
 			register_setting( $option, $option, array( &$this, 'validate_options' ) );
 	
@@ -236,7 +250,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 					);
 				update_option( $option, $option_values );
 			}
-	
+
 			/**************************************/
 			/********** TEMPLATE SETTINGS *********/
 			/**************************************/
@@ -244,8 +258,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			$option = 'wpo_wcpdf_template_settings';
 		
 			// Create option in wp_options.
-			if ( false == get_option( $option ) ) {
-				add_option( $option );
+			if ( false === get_option( $option ) ) {
+				$this->default_settings( $option );
 			}
 	
 			// Section.
@@ -257,8 +271,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			);
 
 
-			$theme_path = get_stylesheet_directory();
-			$theme_template_path = substr($theme_path, strpos($theme_path, 'wp-content')) . '/woocommerce/pdf/yourtemplate';
+			$theme_path = get_stylesheet_directory() . '/' . $wpo_wcpdf->export->template_base_path;
+			$theme_template_path = substr($theme_path, strpos($theme_path, 'wp-content')) . 'yourtemplate';
 			$plugin_template_path = 'wp-content/plugins/woocommerce-pdf-invoices-packing-slips/templates/pdf/Simple';
 
 			add_settings_field(
@@ -493,12 +507,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 			// Register settings.
 			register_setting( $option, $option, array( &$this, 'validate_options' ) );
 
-			// Register defaults if settings empty
 			$option_values = get_option($option);
-			if ( !isset( $option_values['paper_size'] ) ) {
-				$this->default_settings();
-			}
-
 			// determine highest invoice number if option not set
 			if ( !isset( $option_values['next_invoice_number']) ) {
 				// Based on code from WooCommerce Sequential Order Numbers
@@ -519,25 +528,98 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 				$option_values['next_invoice_number'] = $next_invoice_number;
 				update_option( $option, $option_values );
 			}
+			/**************************************/
+			/******** DEBUG/STATUS SETTINGS *******/
+			/**************************************/
+	
+			$option = 'wpo_wcpdf_debug_settings';
+		
+			// Create option in wp_options.
+			if ( false === get_option( $option ) ) {
+				$this->default_settings( $option );
+			}
+
+			// Section.
+			add_settings_section(
+				'debug_settings',
+				__( 'Debug settings', 'wpo_wcpdf' ),
+				array( &$this, 'debug_section' ),
+				$option
+			);
+
+			add_settings_field(
+				'enable_debug',
+				__( 'Enable debug output', 'wpo_wcpdf' ),
+				array( &$this, 'checkbox_element_callback' ),
+				$option,
+				'debug_settings',
+				array(
+					'menu'				=> $option,
+					'id'				=> 'enable_debug',
+					'description'		=> __( "Enable this option to output plugin errors if you're getting a blank page or other PDF generation issues", 'wpo_wcpdf' ),
+				)
+			);
+
+			add_settings_field(
+				'html_output',
+				__( 'Output to HTML', 'wpo_wcpdf' ),
+				array( &$this, 'checkbox_element_callback' ),
+				$option,
+				'debug_settings',
+				array(
+					'menu'				=> $option,
+					'id'				=> 'html_output',
+					'description'		=> __( 'Send the template output as HTML to the browser instead of creating a PDF.', 'wpo_wcpdf' ),
+				)
+			);
+
+			add_settings_field(
+				'old_tmp',
+				__( 'Use old tmp folder', 'wpo_wcpdf' ),
+				array( &$this, 'checkbox_element_callback' ),
+				$option,
+				'debug_settings',
+				array(
+					'menu'				=> $option,
+					'id'				=> 'old_tmp',
+					'description'		=> __( 'Before version 1.5 of PDF Invoices, temporary files were stored in the plugin folder. This setting is only intended for backwards compatibility, not recommended on new installs!', 'wpo_wcpdf' ),
+				)
+			);
+
+			// Register settings.
+			register_setting( $option, $option, array( &$this, 'validate_options' ) );
+	
 		}
 
 		/**
 		 * Set default settings.
 		 */
-		public function default_settings() {
+		public function default_settings( $option ) {
 			global $wpo_wcpdf;
 
-			$default_general = array(
-				'download_display'	=> 'download',
-			);
+			switch ( $option ) {
+				case 'wpo_wcpdf_general_settings':
+					$default = array(
+						'download_display'	=> 'download',
+					);
+					break;
+				case 'wpo_wcpdf_template_settings':
+					$default = array(
+						'paper_size'		=> 'a4',
+						'template_path'		=> $wpo_wcpdf->export->template_default_base_path . 'Simple',
+					);
+					break;
+				default:
+					$default = array();
+					break;
+			}
 
-			$default_template = array(
-				'paper_size'		=> 'a4',
-				'template_path'		=> $wpo_wcpdf->export->template_default_base_path . 'Simple',
-			);
+			if ( false === get_option( $option ) ) {
+				add_option( $option, $default );
+			} else {
+				update_option( $option, $default );
 
-			update_option( 'wpo_wcpdf_general_settings', $default_general );
-			update_option( 'wpo_wcpdf_template_settings', $default_template );
+			}
 		}
 		
 		// Text element callback.
@@ -855,7 +937,16 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		}
 		
 		/**
-		 * Section null callback.
+		 * Debug section callback.
+		 *
+		 * @return void.
+		 */
+		public function debug_section() {
+			_e( '<b>Warning!</b> The settings below are meant for debugging/development only. Do not use them on a live website!' , 'wpo_wcpdf' );
+		}
+		
+		/**
+		 * Custom fields section callback.
 		 *
 		 * @return void.
 		 */
@@ -873,6 +964,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Settings' ) ) {
 		public function validate_options( $input ) {
 			// Create our array for storing the validated options.
 			$output = array();
+
+			if (empty($input) || !is_array($input)) {
+				return $input;
+			}
 		
 			// Loop through each of the incoming options.
 			foreach ( $input as $key => $value ) {

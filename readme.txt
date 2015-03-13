@@ -2,8 +2,8 @@
 Contributors: pomegranate
 Tags: woocommerce, pdf, invoices, packing slips, print, delivery notes, invoice, packing slip, export, email, bulk, automatic
 Requires at least: 3.5
-Tested up to: 4.0
-Stable tag: 1.4.14
+Tested up to: 4.1
+Stable tag: 1.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -140,11 +140,7 @@ Japanese - http://ipafont.ipa.go.jp/index.html
 Chinese - http://www.study-area.org/apt/firefly-font/
 
 = How can I display the HTML/CSS source for debugging/developing templates? =
-Add the following code to your theme's `functions.php`
-`
-add_filter( 'wpo_wcpdf_output_html', '__return_true' );
-add_filter( 'wpo_wcpdf_use_path', '__return_false' );
-`
+There's a setting on the Status tab of the settings page that allows you to toggle HTML output. Don't forget to turn if off after you're done testing!
 
 = How can I display custom fields in the invoice or packing slip? =
 First, you need to create a custom template following instructions from the first item in this FAQ.
@@ -187,6 +183,22 @@ function wpo_wcpdf_custom_filename( $filename, $template_type, $order_ids, $cont
 }
 `
 You can also use the $template_type ('invoice' or 'packing-slip'), $order_ids (single array) or $context ('download' or 'attachment') variables to make more complex rules for the filename.
+
+= How can I add a download link to the invoice on the Thank you page? =
+You can do this with an action in your theme's `functions.php` (Some themes have a "custom functions" area in the settings). Note that due to security restrictions, this will only work for registered/logged in users!
+
+`
+add_filter('woocommerce_thankyou_order_received_text', 'wpo_wcpdf_thank_you_link', 10, 2);
+function wpo_wcpdf_thank_you_link( $text, $order ) {
+	if ( is_user_logged_in() ) {
+		$pdf_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order->id . '&my-account'), 'generate_wpo_wcpdf' );
+		$text .= '<p><a href="'.esc_attr($pdf_url).'">Download a printable invoice / payment confirmation (PDF format)</a></p>';
+	}
+	return $text;
+}
+`
+
+alternatively, you can hook this text to the `woocommerce_thankyou` action, see [this thread](https://wordpress.org/support/topic/suggestion-for-the-faq?replies=5#post-6298810) on the support forum.
 
 = Why does the download link not display on the My Account page? =
 To prevent customers from prematurely creating invoices, the default setting is that a customer can only see/download an invoice from an order that already has an invoice - either created automatically for the email attachment, or manually by the shop manager. This means that ultimately the shop mananger determines whether an invoice is available to the customer. If you want to make the invoice available to everyone you can either of the following:
@@ -235,6 +247,44 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.5.5 =
+* Fix: Check for incomplete line tax data (Subscriptions compatibility)
+* Fix: More precise template path instructions
+* Fix: duplicate stylesheet filter
+* Fix: Always prefer original order's billing address for refunds (WooCommerce EU VAT Number compatibility)
+* Translations: Updated German (MwSt. instead of formal Ust.)
+* Translations: Updated Dutch
+
+= 1.5.4 =
+* Tweak: include plugin version in style/script includes
+* Tweak: upload code cleanup
+* Fix: Parent invoice number (for Credit Notes in professional extension)
+
+= 1.5.3 =
+* Feature: add original order date value to order date filter
+* Feature: Work with line_tax_data when available
+* Feature: pass item_id to items
+* Tweak: later check for woocommerce active
+* Fix: do not try to validate empty settings (Status page settings)
+* Translations: Fixed Dutch typo
+
+= 1.5.2 =
+* Fix: fatal error when trying to activate with WooCommerce not installed yet.
+* Tweak: indentation fix on the Simple template
+
+= 1.5.1 =
+* Fix: prevent errors when upgrading
+
+= 1.5.0 =
+* Feature: All temporary files are now stored centrally in the WP uploads folder.
+* Feature: Debug settings in status panel (output errors & output to HTML)
+* Feature: Compatibility filter for WooCommerce Subscriptions (prevents duplicate invoice numbers)
+* Tweak: Pass order to totals filters
+* Translations: Updated POT
+* Translations: Updated Italian (Thanks Astrid!)
+* Translations: Updated Dutch
+* FAQ: instructions for placing a link on the thank you page
 
 = 1.4.14 =
 * Fix: fatal error when user registers at checkout (applies to credit notes only)
@@ -315,7 +365,7 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 * Fix: Invoice number formatting notices in debug mode
 
 = 1.4.0 =
-* NEW Feature: Invoice numbers can now be given a prefix, suffix or padding on the settings page!
+* Feature: Invoice numbers can now be given a prefix, suffix or padding on the settings page!
 * Filter: `wpo_wcpdf_email_allowed_statuses` to attach pdf to custom order status emails
 * Tweak: Sequential Order Numbers Pro compatibility
 * Tweak: Filenames are now automatically sanitized to prevent issues with illegal characters
@@ -330,7 +380,6 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 
 = 1.3.0 =
 * Feature: Added 'status' panel for better problem diagnosis
-* Feature: Order & Cart, & total discounts can now be called separately with order_discount()
 * Tweak: split create & get invoice number calls to prevent slow database calls from causing number skipping
 * Translations: Added Romanian (Thanks Leonardo!)
 * Translations: Added Slovak (Thanks Oleg!)
@@ -436,3 +485,8 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 
 = 1.0.0 =
 * First release
+
+== Upgrade Notice ==
+
+= 1.5.5 =
+Version 1.5 changes where temporary files are stored - everything is now stored centrally in the WP uploads folder. For backwards compatibility, this feature is turned off by default, but we recommend to use the new folders. Check the plugin Status panel for more information!
