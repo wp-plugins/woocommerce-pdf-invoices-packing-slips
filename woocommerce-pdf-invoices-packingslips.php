@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.5
+ * Version: 1.5.7
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.5';
+			self::$version = '1.5.7';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -64,10 +64,12 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			 * Frontend/global Locale. Looks in:
 			 *
 			 * 		- WP_LANG_DIR/woocommerce-pdf-invoices-packing-slips/wpo_wcpdf-LOCALE.mo
+			 * 	 	- WP_LANG_DIR/plugins/wpo_wcpdf-LOCALE.mo
 			 * 	 	- woocommerce-pdf-invoices-packing-slips/languages/wpo_wcpdf-LOCALE.mo (which if not found falls back to:)
 			 * 	 	- WP_LANG_DIR/plugins/wpo_wcpdf-LOCALE.mo
 			 */
 			load_textdomain( 'wpo_wcpdf', $dir . 'woocommerce-pdf-invoices-packing-slips/wpo_wcpdf-' . $locale . '.mo' );
+			load_textdomain( 'wpo_wcpdf', $dir . 'plugins/wpo_wcpdf-' . $locale . '.mo' );
 			load_plugin_textdomain( 'wpo_wcpdf', false, dirname( self::$plugin_basename ) . '/languages' );
 		}
 
@@ -208,6 +210,26 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		/***********************************************************************/
 		/********************** GENERAL TEMPLATE FUNCTIONS *********************/
 		/***********************************************************************/
+
+		/**
+		 * Get template name from slug
+		 */
+		public function get_template_name ( $template_type ) {
+			switch ( $template_type ) {
+				case 'invoice':
+					$template_name = apply_filters( 'wpo_wcpdf_invoice_title', __( 'Invoice', 'wpo_wcpdf' ) );
+					break;
+				case 'packing-slip':
+					$template_name = apply_filters( 'wpo_wcpdf_packing_slip_title', __( 'Packing Slip', 'wpo_wcpdf' ) );
+					break;
+				default:
+					// try to 'unslug' the name
+					$template_name = ucwords( str_replace( array( '_', '-' ), ' ', $template_type ) );
+					break;
+			}
+
+			return apply_filters( 'wpo_wcpdf_template_name', $template_name, $template_type );
+		}
 
 		/**
 		 * Output template styles
@@ -636,7 +658,14 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 						break;
 					case 'total':
 						// Total Discount - Cart & Order Discounts combined
-						$discount_value = $this->export->order->get_total_discount();
+						// $discount_value = $this->export->order->get_total_discount();
+						$discount_value = 0;
+						$items = $this->export->order->get_items();;
+						if( sizeof( $items ) > 0 ) {
+							foreach( $items as $item ) {
+								$discount_value += ($item['line_subtotal'] + $item['line_subtotal_tax']) - ($item['line_total'] + $item['line_tax']);
+							}
+						}
 						break;
 					default:
 						// Total Discount - Cart & Order Discounts combined
@@ -732,10 +761,10 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				}
 
 				$total = $this->export->wc_price( ( $total_unformatted - $total_tax ) );
-				$label = __('Total ex. VAT');
+				$label = __( 'Total ex. VAT', 'wpo_wcpdf' );
 			} else {
 				$total = $this->export->order->get_formatted_order_total();
-				$label = __('Total');
+				$label = __( 'Total', 'wpo_wcpdf' );
 			}
 			
 			$grand_total = array(

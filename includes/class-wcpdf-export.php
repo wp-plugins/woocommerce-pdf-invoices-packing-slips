@@ -463,6 +463,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				return $attachments;
 			}
 
+			// WooCommerce Booking compatibility
+			if ( get_post_type( $order->id ) == 'wc_booking' && isset($order->order) ) {
+				// $order is actually a WC_Booking object!
+				$order = $order->order;
+			}
+
 			// do not process low stock notifications, user emails etc!
 			if ( in_array( $status, array( 'no_stock', 'low_stock', 'backorder' ) ) || get_post_type( $order->id ) != 'shop_order' ) {
 				return $attachments; 
@@ -568,9 +574,22 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 		public function get_invoice_number( $order_id ) {
 			// get invoice number from post meta
-			$invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true );
+			if ( $invoice_number = get_post_meta( $order_id, '_wcpdf_invoice_number', true ) ) {
+				// check if we have already loaded this order
+				if ( $this->order->id == $order_id ) {
+					$order_number = $this->order->get_order_number();
+					$order_date = $this->order->order_date;
+				} else {
+					$order = new WC_Order( $order_id );
+					$order_number = $order->get_order_number();
+					$order_date = $order->order_date;				
+				}
 
-			return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $this->order->get_order_number(), $this->order->id, $this->order->order_date );
+				return apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $order_number, $order_id, $order_date );
+			} else {
+				// no invoice number for this order
+				return false;
+			}
 		}
 
 		/**
@@ -694,10 +713,6 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 					// = before discount
 					$data['ex_single_price'] = $this->get_formatted_item_price ( $item, 'single', 'excl' );
 					$data['single_price'] = $this->get_formatted_item_price ( $item, 'single' );
-					
-					// Set item meta and replace it when it is empty
-					$meta = new WC_Order_Item_Meta( $item['item_meta'] );	
-					$data['meta'] = $meta->display( false, true );
 
 					// Pass complete item array
 					$data['item'] = $item;
@@ -731,6 +746,10 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 						$data['product'] = $product;
 					
 					}
+					
+					// Set item meta
+					$meta = new WC_Order_Item_Meta( $item['item_meta'], $product );
+					$data['meta'] = $meta->display( false, true );
 
 					$data_list[$item_id] = apply_filters( 'wpo_wcpdf_order_item_data', $data, $this->order );
 				}

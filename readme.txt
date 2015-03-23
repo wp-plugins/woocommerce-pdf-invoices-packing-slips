@@ -3,7 +3,7 @@ Contributors: pomegranate
 Tags: woocommerce, pdf, invoices, packing slips, print, delivery notes, invoice, packing slip, export, email, bulk, automatic
 Requires at least: 3.5
 Tested up to: 4.1
-Stable tag: 1.5.5
+Stable tag: 1.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,8 +136,8 @@ Some notes:
 * I have found that not all servers cope well with the font paths. If this is the case with your font, try to put the font in the root of your site and put that in the font url (i.e. `url(http://yoursite.com/fonts/myfont-italic.ttf)` )
 
 Some font links:
-Japanese - http://ipafont.ipa.go.jp/index.html
-Chinese - http://www.study-area.org/apt/firefly-font/
+* Japanese - http://ipafont.ipa.go.jp/index.html
+* Chinese - http://www.study-area.org/apt/firefly-font/
 
 = How can I display the HTML/CSS source for debugging/developing templates? =
 There's a setting on the Status tab of the settings page that allows you to toggle HTML output. Don't forget to turn if off after you're done testing!
@@ -200,22 +200,6 @@ function wpo_wcpdf_thank_you_link( $text, $order ) {
 
 alternatively, you can hook this text to the `woocommerce_thankyou` action, see [this thread](https://wordpress.org/support/topic/suggestion-for-the-faq?replies=5#post-6298810) on the support forum.
 
-= Why does the download link not display on the My Account page? =
-To prevent customers from prematurely creating invoices, the default setting is that a customer can only see/download an invoice from an order that already has an invoice - either created automatically for the email attachment, or manually by the shop manager. This means that ultimately the shop mananger determines whether an invoice is available to the customer. If you want to make the invoice available to everyone you can either of the following:
-
-1. Change the email setting to attach invoices to processing and/or new order emails as well
-2. Add a filter to your themes functions.php for greater control:
-
-`
-add_filter( 'wpo_wcpdf_myaccount_allowed_order_statuses', 'wpo_wcpdf_myaccount_allowed_order_statuses' );
-function wpo_wcpdf_myaccount_allowed_order_statuses( $allowed_statuses ) {
-	// Possible statuses : pending, failed, on-hold, processing, completed, refunded, cancelled
-	$allowed_statuses = array ( 'processing', 'completed' );
-
-	return $allowed_statuses;
-}
-`
-
 = How can I get a copy of the invoice emailed to the shop manager? =
 The easiest way to do this is to just tick the 'new order' box. However, this also means that an invoice will be created for all new orders, also the ones that are never completed.
 
@@ -247,6 +231,22 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 4. Simple packing slip PDF
 
 == Changelog ==
+
+= 1.5.7 =
+* Feature: Setting to show email address & phone number on invoice or packing slip (does not work on custom templates based on previous versions!)
+
+= 1.5.6 =
+* Feature: Setting to show shipping address on invoice (does not work on custom templates based on previous versions!)
+* Feature: My Account invoice download setting
+* Feature: several new template actions
+* Tweak: WooCommerce Bookings compatibility
+* Tweak: Gerenal stylesheet cleanup
+* Fix: temp path check/error on settings page
+* Fix: Document titles for credit notes and proforma (Pro)
+* Fix: Discount including tax
+* Fix: Special characters on item meta (requires WooCommerce 2.3.6)
+* Translations: Missing text domain on several strings
+* Translations: Updated POT & Dutch
 
 = 1.5.5 =
 * Fix: Check for incomplete line tax data (Subscriptions compatibility)
@@ -488,5 +488,5 @@ This usually only happens on batch actions. PDF creation is a memory intensive j
 
 == Upgrade Notice ==
 
-= 1.5.5 =
+= 1.5.7 =
 Version 1.5 changes where temporary files are stored - everything is now stored centrally in the WP uploads folder. For backwards compatibility, this feature is turned off by default, but we recommend to use the new folders. Check the plugin Status panel for more information!
