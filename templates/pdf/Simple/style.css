@@ -1,3 +1,4 @@
+<?php global $wpo_wcpdf;?>
 /* Main Body */
 @font-face {
 	font-family: 'Open Sans';
@@ -145,6 +146,14 @@ td.order-data {
 	width: 40%;
 }
 
+.invoice .shipping-address {
+	width: 30%;
+}
+
+.packing-slip .billing-address {
+	width: 30%;
+}
+
 td.order-data table th {
 	font-weight: normal;
 	padding-right: 2mm;
@@ -230,6 +239,10 @@ table.totals tr:last-child th {
 	border-top: 2px solid #000;
 	border-bottom: 2px solid #000;
 	font-weight: bold;
+}
+
+table.totals tr.payment_method {
+	display: none;
 }
 
 /* Footer Imprint */

@@ -381,11 +381,13 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				die($this->process_template( $template_type, $order_ids ));
 			}
 		
-			if ( !($invoice = $this->get_pdf( $template_type, $order_ids )) ) {
+			if ( !($pdf = $this->get_pdf( $template_type, $order_ids )) ) {
 				exit;
 			}
 
 			$filename = $this->build_filename( $template_type, $order_ids, 'download' );
+
+			do_action( 'wpo_wcpdf_created_manually', $pdf, $filename );
 
 			// Get output setting
 			$output_mode = isset($this->general_settings['download_display'])?$this->general_settings['download_display']:'';
@@ -406,7 +408,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			// output PDF data
-			echo($invoice);
+			echo($pdf);
 
 			exit;
 		}
@@ -471,6 +473,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 
 			// do not process low stock notifications, user emails etc!
 			if ( in_array( $status, array( 'no_stock', 'low_stock', 'backorder' ) ) || get_post_type( $order->id ) != 'shop_order' ) {
+				return $attachments; 
+			}
+
+			// Disable free setting check
+			$order_total = $order->get_total();
+			if ( $order_total == 0 && isset($this->general_settings['disable_free']) ) {
 				return $attachments; 
 			}
 
@@ -950,6 +958,18 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		public function enable_debug () {
 			error_reporting( E_ALL );
 			ini_set( 'display_errors', 1 );
+		}
+
+		/**
+		 * Log messages
+		 */
+
+		public function log( $order_id, $message ) {
+			$current_date_time = date("Y-m-d H:i:s");
+			$message = $order_id . ' ' . $current_date_time .' ' .$message ."\n";
+			$file = $this->tmp_path() . 'log.txt';
+
+			file_put_contents($file, $message, FILE_APPEND);
 		}
 	}
 
