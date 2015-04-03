@@ -461,7 +461,12 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 		 */
 		public function attach_pdf_to_email ( $attachments, $status, $order ) {
 			// check if all variables properly set
-			if ( !is_object( $order ) || !isset( $order->id ) || !isset( $status ) ) {
+			if ( !is_object( $order ) || !isset( $status ) ) {
+				return $attachments;
+			}
+
+			// Skip User emails
+			if ( get_class( $order ) == 'WP_User' ) {
 				return $attachments;
 			}
 
@@ -472,7 +477,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			// do not process low stock notifications, user emails etc!
-			if ( in_array( $status, array( 'no_stock', 'low_stock', 'backorder' ) ) || get_post_type( $order->id ) != 'shop_order' ) {
+			if ( in_array( $status, array( 'no_stock', 'low_stock', 'backorder', 'customer_new_account', 'customer_reset_password' ) ) || get_post_type( $order->id ) != 'shop_order' ) {
 				return $attachments; 
 			}
 
