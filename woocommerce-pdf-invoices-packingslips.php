@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.10
+ * Version: 1.5.11
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.10';
+			self::$version = '1.5.11';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -584,10 +584,14 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		public function get_product_attribute( $attribute_name, $product ) {
 			// first, check the text attributes
 			$attributes = $product->get_attributes();
+			$attribute_key = @wc_attribute_taxonomy_name( $attribute_name );
 			if (array_key_exists( sanitize_title( $attribute_name ), $attributes) ) {
 				$attribute = $product->get_attribute ( $attribute_name );
 				return $attribute;
-			} 
+			} elseif (array_key_exists( sanitize_title( $attribute_key ), $attributes) ) {
+				$attribute = $product->get_attribute ( $attribute_key );
+				return $attribute;
+			}
 
 			// not a text attribute, try attribute taxonomy
 			$attribute_key = @wc_attribute_taxonomy_name( $attribute_name );
