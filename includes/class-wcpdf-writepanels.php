@@ -12,6 +12,9 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 * Constructor
 		 */
 		public function __construct() {
+			$this->general_settings = get_option('wpo_wcpdf_general_settings');
+			$this->template_settings = get_option('wpo_wcpdf_template_settings');
+
 			add_action( 'woocommerce_admin_order_actions_end', array( $this, 'add_listing_actions' ) );
 			add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_invoice_number_column' ), 999 );
 			add_action( 'manage_shop_order_posts_custom_column', array( $this, 'invoice_number_column_data' ), 2 );
@@ -24,8 +27,6 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 			add_action( 'woocommerce_admin_order_data_after_order_details', array(&$this, 'edit_invoice_number') );
 			add_action( 'save_post', array( &$this,'save_invoice_number_date' ) );
 
-			$this->general_settings = get_option('wpo_wcpdf_general_settings');
-			$this->template_settings = get_option('wpo_wcpdf_template_settings');
 
 			$this->bulk_actions = array(
 				'invoice'		=> __( 'PDF Invoices', 'wpo_wcpdf' ),
@@ -42,9 +43,19 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 
 				if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 ) {
 					// WC 2.1 or newer (MP6) is used: bigger buttons
-					wp_enqueue_style( 'wpo-wcpdf', WooCommerce_PDF_Invoices::$plugin_url . 'css/style-wc21.css' );
+					wp_enqueue_style(
+						'wpo-wcpdf',
+						WooCommerce_PDF_Invoices::$plugin_url . 'css/style-wc21.css',
+						array(),
+						WooCommerce_PDF_Invoices::$version
+					);
 				} else {
-					wp_enqueue_style( 'wpo-wcpdf', WooCommerce_PDF_Invoices::$plugin_url . 'css/style.css' );
+					wp_enqueue_style(
+						'wpo-wcpdf',
+						WooCommerce_PDF_Invoices::$plugin_url . 'css/style.css',
+						array(),
+						WooCommerce_PDF_Invoices::$version
+					);
 				}
 
 			}
@@ -55,7 +66,12 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 */
 		public function add_scripts() {
 			if( $this->is_order_edit_page() ) {
-				wp_enqueue_script( 'wpo-wcpdf', WooCommerce_PDF_Invoices::$plugin_url . 'js/script.js', array( 'jquery' ) );
+				wp_enqueue_script(
+					'wpo-wcpdf',
+					WooCommerce_PDF_Invoices::$plugin_url . 'js/script.js',
+					array( 'jquery' ),
+					WooCommerce_PDF_Invoices::$version
+				);
 				wp_localize_script(  
 					'wpo-wcpdf',  
 					'wpo_wcpdf_ajax',  
@@ -130,20 +146,14 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		 * @param  string $column column slug
 		 */
 		public function invoice_number_column_data( $column ) {
-			global $post, $the_order;
+			global $post, $the_order, $wpo_wcpdf;
 
-			if ( $column == 'pdf_invoice_number' && get_post_meta($the_order->id,'_wcpdf_invoice_number',true) ) {
+			if ( $column == 'pdf_invoice_number' ) {
 				if ( empty( $the_order ) || $the_order->id != $post->ID ) {
 					$the_order = new WC_Order( $post->ID );
 				}
 
-				// collect data for invoice number filter
-				$invoice_number = get_post_meta($the_order->id,'_wcpdf_invoice_number',true);
-				$order_number = $the_order->get_order_number();
-				$order_id = $the_order->id;
-				$order_date = $the_order->order_date;
-
-				echo apply_filters( 'wpo_wcpdf_invoice_number', $invoice_number, $order_number, $order_id, $order_date );
+				echo $wpo_wcpdf->export->get_invoice_number( $the_order->id );
 			}
 		}
 
@@ -153,8 +163,30 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices_Writepanels' ) ) {
 		public function my_account_pdf_link( $actions, $order ) {
 			$pdf_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=generate_wpo_wcpdf&template_type=invoice&order_ids=' . $order->id . '&my-account'), 'generate_wpo_wcpdf' );
 
+			// check my account button settings
+			if (isset($this->general_settings['my_account_buttons'])) {
+				switch ($this->general_settings['my_account_buttons']) {
+					case 'available':
+						$invoice_allowed = get_post_meta($order->id,'_wcpdf_invoice_exists',true);
+						break;
+					case 'always':
+						$invoice_allowed = true;
+						break;
+					case 'custom':
+						if ( in_array( $order->status, array_keys( $this->general_settings['my_account_restrict'] ) ) ) {
+							$invoice_allowed = true;
+						} else {
+							$invoice_allowed = false;							
+						}
+						break;
+				}
+			} else {
+				// backwards compatibility
+				$invoice_allowed = get_post_meta($order->id,'_wcpdf_invoice_exists',true);
+			}
+
 			// Check if invoice has been created already or if status allows download (filter your own array of allowed statuses)
-			if ( get_post_meta($order->id,'_wcpdf_invoice_exists',true) || in_array($order->status, apply_filters( 'wpo_wcpdf_myaccount_allowed_order_statuses', array() ) ) ) {
+			if ( $invoice_allowed || in_array($order->status, apply_filters( 'wpo_wcpdf_myaccount_allowed_order_statuses', array() ) ) ) {
 				$actions['invoice'] = array(
 					'url'  => $pdf_url,
 					'name' => apply_filters( 'wpo_wcpdf_myaccount_button_text', __( 'Download invoice (PDF)', 'wpo_wcpdf' ) )
