@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.12
+ * Version: 1.5.13
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.12';
+			self::$version = '1.5.13';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -308,6 +308,43 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		public function shop_address() {
 			echo $this->get_shop_address();
 		}
+
+		/**
+		 * Check if billing address and shipping address are equal
+		 */
+		public function ships_to_different_address() {
+			// always prefer parent address for refunds
+			if ( get_post_type( $this->export->order->id ) == 'shop_order_refund' && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
+				// temporarily switch order to make all filters / order calls work correctly
+				$order_meta = get_post_meta( $parent_order_id );
+			} else {
+				$order_meta = get_post_meta( $this->export->order->id );
+			}
+
+			$address_comparison_fields = apply_filters( 'wpo_wcpdf_address_comparison_fields', array(
+				'first_name',
+				'last_name',
+				'company',
+				'address_1',
+				'address_2',
+				'city',
+				'state',
+				'postcode',
+				'country'
+			) );
+			
+			foreach ($address_comparison_fields as $address_field) {
+				$billing_field = isset( $order_meta['_billing_'.$address_field] ) ? $order_meta['_billing_'.$address_field] : '';
+				$shipping_field = isset( $order_meta['_shipping_'.$address_field] ) ? $order_meta['_shipping_'.$address_field] : '';
+				if ( $shipping_field != $billing_field ) {
+					// this address field is different -> ships to different address!
+					return true;
+				}
+			}
+
+			//if we got here, it means the addresses are equal -> doesn't ship to different address!
+			return false;
+		}
 		
 		/**
 		 * Return/Show billing address
@@ -327,7 +364,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				$address = apply_filters( 'wpo_wcpdf_billing_address', $address );
 			} else {
 				// no address
-				$address = __('N/A', 'wpo_wcpdf');
+				$address = apply_filters( 'wpo_wcpdf_billing_address', __('N/A', 'wpo_wcpdf') );
 			}
 
 			return $address;
@@ -388,7 +425,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				$address = apply_filters( 'wpo_wcpdf_shipping_address', $address );
 			} else {
 				// no address
-				$address = __('N/A', 'wpo_wcpdf');
+				$address = apply_filters( 'wpo_wcpdf_shipping_address', __('N/A', 'wpo_wcpdf') );
 			}
 
 			return $address;
@@ -681,23 +718,28 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			if ( $tax == 'incl' ) {
 				switch ($type) {
 					case 'cart':
-						// Cart Discount - pre-tax discounts.
+						// Cart Discount - pre-tax discounts. (deprecated in WC2.3)
 						$discount_value = $this->export->order->get_cart_discount();
 						break;
 					case 'order':
-						// Order Discount - post-tax discounts.
+						// Order Discount - post-tax discounts. (deprecated in WC2.3)
 						$discount_value = $this->export->order->get_order_discount();
 						break;
 					case 'total':
-						// Total Discount - Cart & Order Discounts combined
-						// $discount_value = $this->export->order->get_total_discount();
-						$discount_value = 0;
-						$items = $this->export->order->get_items();;
-						if( sizeof( $items ) > 0 ) {
-							foreach( $items as $item ) {
-								$discount_value += ($item['line_subtotal'] + $item['line_subtotal_tax']) - ($item['line_total'] + $item['line_tax']);
+						// Total Discount
+						if ( version_compare( WOOCOMMERCE_VERSION, '2.3' ) >= 0 ) {
+							$discount_value = $this->export->order->get_total_discount( false ); // $ex_tax = false
+						} else {
+							// WC2.2 and older: recalculate to include tax
+							$discount_value = 0;
+							$items = $this->export->order->get_items();;
+							if( sizeof( $items ) > 0 ) {
+								foreach( $items as $item ) {
+									$discount_value += ($item['line_subtotal'] + $item['line_subtotal_tax']) - ($item['line_total'] + $item['line_tax']);
+								}
 							}
 						}
+
 						break;
 					default:
 						// Total Discount - Cart & Order Discounts combined
@@ -705,12 +747,17 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 						break;
 				}
 			} else { // calculate discount excluding tax
-				$discount_value = 0;
+				if ( version_compare( WOOCOMMERCE_VERSION, '2.3' ) >= 0 ) {
+					$discount_value = $this->export->order->get_total_discount( true ); // $ex_tax = true
+				} else {
+					// WC2.2 and older: recalculate to exclude tax
+					$discount_value = 0;
 
-				$items = $this->export->order->get_items();;
-				if( sizeof( $items ) > 0 ) {
-					foreach( $items as $item ) {
-						$discount_value += ($item['line_subtotal'] - $item['line_total']);
+					$items = $this->export->order->get_items();;
+					if( sizeof( $items ) > 0 ) {
+						foreach( $items as $item ) {
+							$discount_value += ($item['line_subtotal'] - $item['line_total']);
+						}
 					}
 				}
 			}
