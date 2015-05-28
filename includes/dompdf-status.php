@@ -52,8 +52,14 @@ $server_configs = array(
 		"result"   => extension_loaded("gmagick") || extension_loaded("imagick"),
 		"fallback" => "Recommended for better performances",
 	),
+	"glob()" => array(
+		"required" => "Required to detect custom templates and to clear the temp folder periodically",
+		"value"    => null,
+		"result"   => function_exists("glob"),
+		"fallback" => "Check php disable_functions",
+	),
 	"WP Memory Limit" => array(
-		"required" => 'Recommended: 64MB (128MB for optimal performance)<br/>See: <a href="http://codex.wordpress.org/Editing_wp-config.php#Increasing_memory_allocated_to_PHP">Increasing memory allocated to PHP</a>',
+		"required" => 'Recommended: 128MB (more for plugin-heavy setups)<br/>See: <a href="http://codex.wordpress.org/Editing_wp-config.php#Increasing_memory_allocated_to_PHP">Increasing memory allocated to PHP</a>',
 		"value"    => WP_MEMORY_LIMIT,
 		"result"   => $memory_limit > 67108864,
 	),
@@ -119,37 +125,50 @@ if (($gm = extension_loaded("gmagick")) || ($im = extension_loaded("imagick"))) 
 
 <?php
 $permissions = array(
-	'DOMPDF_FONT_DIR'		=> array (
-			'description'		=> 'Directory containing fonts loaded into DOMPDF',
-			'value'				=> DOMPDF_FONT_DIR,
-			'status'			=> (is_writable(DOMPDF_FONT_DIR) ? "ok" : "failed"),			
-			'status_message'	=> (is_writable(DOMPDF_FONT_DIR) ? "Writable" : "Not writable"),
+	'WCPDF_TEMP_DIR'		=> array (
+			'description'		=> 'Central temporary plugin folder',
+			'value'				=> $wpo_wcpdf->export->tmp_path(),
+			'status'			=> (is_writable( $wpo_wcpdf->export->tmp_path() ) ? "ok" : "failed"),			
+			'status_message'	=> (is_writable( $wpo_wcpdf->export->tmp_path() ) ? "Writable" : "Not writable"),
 		),
-	'DOMPDF_FONT_CACHE'		=> array (
-			'description'		=> 'Font metrics cache (used mainly by CPDF)',
-			'value'				=> DOMPDF_FONT_CACHE,
-			'status'			=> (is_writable(DOMPDF_FONT_CACHE) ? "ok" : "failed"),			
-			'status_message'	=> (is_writable(DOMPDF_FONT_CACHE) ? "Writable" : "Not writable"),
+	'WCPDF_ATTACHMENT_DIR'		=> array (
+			'description'		=> 'Temporary attachments folder',
+			'value'				=> trailingslashit( $wpo_wcpdf->export->tmp_path( 'attachments' ) ),
+			'status'			=> (is_writable( $wpo_wcpdf->export->tmp_path( 'attachments' ) ) ? "ok" : "failed"),			
+			'status_message'	=> (is_writable( $wpo_wcpdf->export->tmp_path( 'attachments' ) ) ? "Writable" : "Not writable"),
 		),
 	'DOMPDF_TEMP_DIR'		=> array (
-			'description'		=> 'Temporary PDF engine folder',
-			'value'				=> DOMPDF_TEMP_DIR,
+			'description'		=> 'Temporary DOMPDF folder',
+			'value'				=> trailingslashit(DOMPDF_TEMP_DIR),
 			'status'			=> (is_writable(DOMPDF_TEMP_DIR) ? "ok" : "failed"),			
 			'status_message'	=> (is_writable(DOMPDF_TEMP_DIR) ? "Writable" : "Not writable"),
 		),
+	'DOMPDF_FONT_CACHE'		=> array (
+			'description'		=> 'Font metrics cache (used mainly by CPDF)',
+			'value'				=> trailingslashit(DOMPDF_FONT_CACHE),
+			'status'			=> (is_writable(DOMPDF_FONT_CACHE) ? "ok" : "failed"),			
+			'status_message'	=> (is_writable(DOMPDF_FONT_CACHE) ? "Writable" : "Not writable"),
+		),
+	'DOMPDF_FONT_DIR'		=> array (
+			'description'		=> 'DOMPDF fonts folder (needs to be writable for custom/remote fonts)',
+			'value'				=> trailingslashit(DOMPDF_FONT_DIR),
+			'status'			=> (is_writable(DOMPDF_FONT_DIR) ? "ok" : "failed"),			
+			'status_message'	=> (is_writable(DOMPDF_FONT_DIR) ? "Writable" : "Not writable"),
+		),
 	'DOMPDF_ENABLE_REMOTE'	=> array (
 			'description'		=> 'Allow remote stylesheets and images',
-			'value'				=> DOMPDF_ENABLE_REMOTE,
+			'value'				=> DOMPDF_ENABLE_REMOTE ? 'true' : 'false',
 			'status'			=> (ini_get("allow_url_fopen")) ? "ok" : "failed",			
 			'status_message'	=> (ini_get("allow_url_fopen")) ? "allow_url_fopen enabled" : "allow_url_fopen disabled",
 		),
-	'WCPDF_TEMP_DIR'		=> array (
-			'description'		=> 'Temporary plugin folder',
-			'value'				=> WooCommerce_PDF_Invoices::$plugin_path . 'tmp/',
-			'status'			=> (is_writable(WooCommerce_PDF_Invoices::$plugin_path . 'tmp/') ? "ok" : "failed"),			
-			'status_message'	=> (is_writable(WooCommerce_PDF_Invoices::$plugin_path . 'tmp/') ? "Writable" : "Not writable"),
-		),
 	);
+
+if ( isset($wpo_wcpdf->export->debug_settings['old_tmp']) ) {
+	unset($permissions['WCPDF_TEMP_DIR']);
+}
+
+$upload_dir = wp_upload_dir();
+$upload_base = trailingslashit( $upload_dir['basedir'] );
 
 ?>
 <br />
@@ -179,3 +198,19 @@ $permissions = array(
 	<?php } ?>
 
 </table>
+
+<p>
+The central temp folder (1.5+) is <code><?php echo $wpo_wcpdf->export->tmp_path(); ?></code>.
+By default, this folder is created in the WordPress uploads folder (<code><?php echo $upload_base; ?></code>),
+which can be defined by setting <code>UPLOADS</code> in wp-config.php.
+Alternatively, you can control the specific folder for PDF invoices by using the
+<code>wpo_wcpdf_tmp_path</code> filter. Make sure this folder is writable and that the
+subfolders <code>attachments</code>, <code>dompdf</code> and <code>fonts</code>
+are present (these will be created by the plugin if the central temp folder is writable).<br>
+<br>
+If the temporary folders were not automatically created by the plugin, verify that all the font
+files (from <code><?php echo WooCommerce_PDF_Invoices::$plugin_path . "lib/dompdf/lib/fonts/"; ?></code>)
+are copied to the fonts folder.
+Normally, this is fully automated, but if your server has strict security settings, this automated
+copying may have been prohibited. In that case, you also need to make sure these folders get
+synchronized on plugin updates!
