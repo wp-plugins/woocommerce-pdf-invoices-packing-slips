@@ -570,7 +570,7 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				update_post_meta($order_id, '_wcpdf_invoice_number', $invoice_number);
 
 				// increase next_order_number
-				$template_settings = get_option('wpo_wcpdf_template_settings');
+				$template_settings = apply_filters( 'wpml_unfiltered_admin_string', get_option( 'wpo_wcpdf_template_settings' ), 'wpo_wcpdf_template_settings' );
 				$template_settings['next_invoice_number'] = $this->template_settings['next_invoice_number'] = $invoice_number+1;
 				update_option( 'wpo_wcpdf_template_settings', $template_settings );
 			}
@@ -633,8 +633,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				$formats[$key] = $value;
 			}
 
-			// Padding - minimum of 3 for safety
-			if ( ctype_digit( (string)$formats['padding'] ) && $formats['padding'] > 3 ) {
+			// Padding
+			if ( ctype_digit( (string)$formats['padding'] ) ) {
 				$invoice_number = sprintf('%0'.$formats['padding'].'d', $invoice_number);
 			}
 
