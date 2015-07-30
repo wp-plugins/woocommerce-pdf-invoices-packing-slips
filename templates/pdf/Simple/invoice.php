@@ -86,7 +86,7 @@
 	</thead>
 	<tbody>
 		<?php $items = $wpo_wcpdf->get_order_items(); if( sizeof( $items ) > 0 ) : foreach( $items as $item_id => $item ) : ?>
-		<tr>
+		<tr class="<?php do_action( 'wpo_wcpdf_item_row_class', $wpo_wcpdf->export->template_type, $item, $wpo_wcpdf->export->order  ); ?>">
 			<td class="product">
 				<?php $description_label = __( 'Description', 'wpo_wcpdf' ); // registering alternate label translation ?>
 				<span class="item-name"><?php echo $item['name']; ?></span>
@@ -119,7 +119,7 @@
 					<tfoot>
 						<?php foreach( $wpo_wcpdf->get_woocommerce_totals() as $key => $total ) : ?>
 						<tr class="<?php echo $key; ?>">
-							<td class="no-borders">&nbsp;</td>
+							<td class="no-borders"></td>
 							<th class="description"><?php echo $total['label']; ?></th>
 							<td class="price"><span class="totals-price"><?php echo $total['value']; ?></span></td>
 						</tr>

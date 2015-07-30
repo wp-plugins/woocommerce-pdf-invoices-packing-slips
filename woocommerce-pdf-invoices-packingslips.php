@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.15
+ * Version: 1.5.16
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.15';
+			self::$version = '1.5.16';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -463,8 +463,14 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 * Return/Show order notes
 		 */		
 		public function get_order_notes( $filter = 'customer' ) {
+			if ( get_post_type( $this->export->order->id ) == 'shop_order_refund' && $parent_order_id = wp_get_post_parent_id( $this->export->order->id ) ) {
+				$post_id = $parent_order_id;
+			} else {
+				$post_id = $this->export->order->id;
+			}
+
 			$args = array(
-				'post_id' 	=> $this->export->order->id,
+				'post_id' 	=> $post_id,
 				'approve' 	=> 'approve',
 				'type' 		=> 'order_note'
 			);
@@ -682,7 +688,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				'value'	=> $subtotal, 
 			);
 			
-			return apply_filters( 'wpo_wcpdf_order_subtotal', $subtotal );
+			return apply_filters( 'wpo_wcpdf_order_subtotal', $subtotal, $tax, $discount );
 		}
 		public function order_subtotal( $tax = 'excl', $discount = 'incl' ) {
 			$subtotal = $this->get_order_subtotal( $tax, $discount );
@@ -704,7 +710,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				'value'	=> $shipping_costs,
 				'tax'	=> $this->export->wc_price( $this->export->order->order_shipping_tax ),
 			);
-			return apply_filters( 'wpo_wcpdf_order_shipping', $shipping );
+			return apply_filters( 'wpo_wcpdf_order_shipping', $shipping, $tax );
 		}
 		public function order_shipping( $tax = 'excl' ) {
 			$shipping = $this->get_order_shipping( $tax );
@@ -768,7 +774,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			);
 
 			if ( $discount_value > 0 ) {
-				return apply_filters( 'wpo_wcpdf_order_discount', $discount );
+				return apply_filters( 'wpo_wcpdf_order_discount', $discount, $type, $tax );
 			}
 		}
 		public function order_discount( $type = 'total', $tax = 'incl' ) {
@@ -852,7 +858,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				'value'	=> $total,
 			);			
 
-			return apply_filters( 'wpo_wcpdf_order_grand_total', $grand_total );
+			return apply_filters( 'wpo_wcpdf_order_grand_total', $grand_total, $tax );
 		}
 		public function order_grand_total( $tax = 'incl' ) {
 			$grand_total = $this->get_order_grand_total( $tax );
