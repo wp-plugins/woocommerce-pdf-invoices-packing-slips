@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.19
+ * Version: 1.5.20
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.19';
+			self::$version = '1.5.20';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -669,6 +669,33 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 				}		
 				$totals[$key]['label'] = $label;
 			}
+
+			// WC2.4 fix order_total for refunded orders
+			if ( version_compare( WOOCOMMERCE_VERSION, '2.4', '>=' ) && isset($totals['order_total']) ) {
+				$tax_display = $this->export->order->tax_display_cart;
+				$totals['order_total']['value'] = wc_price( $this->export->order->get_total(), array( 'currency' => $this->export->order->get_order_currency() ) );
+				$order_total    = $this->export->order->get_total();
+				$tax_string     = '';
+
+				// Tax for inclusive prices
+				if ( wc_tax_enabled() && 'incl' == $tax_display ) {
+					$tax_string_array = array();
+
+					if ( 'itemized' == get_option( 'woocommerce_tax_total_display' ) ) {
+						foreach ( $this->export->order->get_tax_totals() as $code => $tax ) {
+							$tax_amount         = $tax->formatted_amount;
+							$tax_string_array[] = sprintf( '%s %s', $tax_amount, $tax->label );
+						}
+					} else {
+						$tax_string_array[] = sprintf( '%s %s', wc_price( $this->export->order->get_total_tax() - $this->export->order->get_total_tax_refunded(), array( 'currency' => $this->export->order->get_order_currency() ) ), WC()->countries->tax_or_vat() );
+					}
+					if ( ! empty( $tax_string_array ) ) {
+						$tax_string = ' ' . sprintf( __( '(Includes %s)', 'woocommerce' ), implode( ', ', $tax_string_array ) );
+					}
+				}
+
+				$totals['order_total']['value'] .= $tax_string;			
+			}	
 	
 			return apply_filters( 'wpo_wcpdf_woocommerce_totals', $totals, $this->export->order );
 		}
