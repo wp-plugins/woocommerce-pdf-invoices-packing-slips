@@ -25,7 +25,8 @@ jQuery(document).ready(function() {
 				<?php _e( 'Supercharge WooCommerce PDF Invoices & Packing Slips with the following features:', 'wpo_wcpdf' ); ?>
 				<ul>
 					<li><?php _e( 'Email/print/download <b>PDF Credit Notes & Proforma invoices</b>', 'wpo_wcpdf' ); ?></li>
-					<li><?php _e( 'Attach a <b>static file</b> (for example a terms & conditions document) to the WooCommerce emails of your choice.', 'wpo_wcpdf' ); ?></li>
+					<li><?php _e( 'Send out a separate <b>notification email</b> with (or without) PDF invoices/packing slips, for example to a drop-shipper or a supplier.', 'wpo_wcpdf' ); ?></li>
+					<li><?php _e( 'Attach <b>up to 3 static files</b> (for example a terms & conditions document) to the WooCommerce emails of your choice.', 'wpo_wcpdf' ); ?></li>
 					<li><?php _e( 'Use <b>separate numbering systems</b> and/or format for proforma invoices and credit notes or utilize the main invoice numbering system', 'wpo_wcpdf' ); ?></li>
 					<li><?php _e( '<b>Customize</b> the <b>shipping & billing address</b> format to include additional custom fields, font sizes etc. without the need to create a custom template.', 'wpo_wcpdf' ); ?></li>
 					<li><?php _e( 'Use the plugin in multilingual <b>WPML</b> setups', 'wpo_wcpdf' ); ?></li>
@@ -78,11 +79,11 @@ jQuery(document).ready(function() {
 			$email_link = '<a href="mailto:support@wpovernight.com">support@wpovernight.com</a>'
 			?>
 			<li>
-				<?php _e('More advanced templates', 'wpo_wcpdf')?>
+				<?php _e('Advanced, customizable templates', 'wpo_wcpdf')?>
 				<div class="more" style="display:none;">
 				<ul>
-					<li><?php _e( 'Stylish modern invoices & packing slips with product thumbnails!', 'wpo_wcpdf' ); ?></li>
-					<li><?php _e( 'More tax details on the invoices!', 'wpo_wcpdf' ); ?></li>
+					<li><?php _e( 'Completely customize the invoice contents (prices, taxes, thumbnails) to your needs with a drag & drop customizer', 'wpo_wcpdf' ); ?></li>
+					<li><?php _e( 'Two extra stylish premade templates (Modern & Business)', 'wpo_wcpdf' ); ?></li>
 					<li><?php printf( __("Check out the Premium PDF Invoice & Packing Slips templates at %s.", 'wpo_wcpdf'), $template_link );?></li>
 					<li><?php printf( __("For custom templates, contact us at %s.", 'wpo_wcpdf'), $email_link );?></li>
 				</ul>
