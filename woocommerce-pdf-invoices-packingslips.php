@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce PDF Invoices & Packing Slips
  * Plugin URI: http://www.wpovernight.com
  * Description: Create, print & email PDF invoices & packing slips for WooCommerce orders.
- * Version: 1.5.20
+ * Version: 1.5.21
  * Author: Ewout Fernhout
  * Author URI: http://www.wpovernight.com
  * License: GPLv2 or later
@@ -33,7 +33,7 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 			self::$plugin_basename = plugin_basename(__FILE__);
 			self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 			self::$plugin_path = trailingslashit(dirname(__FILE__));
-			self::$version = '1.5.20';
+			self::$version = '1.5.21';
 			
 			// load the localisation & classes
 			add_action( 'plugins_loaded', array( $this, 'translations' ) ); // or use init?
@@ -859,24 +859,24 @@ if ( !class_exists( 'WooCommerce_PDF_Invoices' ) ) {
 		 * Return/show the order grand total
 		 */
 		public function get_order_grand_total( $tax = 'incl' ) {
+			if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 ) {
+				// WC 2.1 or newer is used
+				$total_unformatted = $this->export->order->get_total();
+			} else {
+				// Backwards compatibility
+				$total_unformatted = $this->export->order->get_order_total();
+			}
+
 			if ($tax == 'excl' ) {
 				$total_tax = 0;
 				foreach ( $this->export->order->get_taxes() as $tax ) {
 					$total_tax += ( $tax[ 'tax_amount' ] + $tax[ 'shipping_tax_amount' ] );
 				}
-				
-				if ( version_compare( WOOCOMMERCE_VERSION, '2.1' ) >= 0 ) {
-					// WC 2.1 or newer is used
-					$total_unformatted = $this->export->order->get_total();
-				} else {
-					// Backwards compatibility
-					$total_unformatted = $this->export->order->get_order_total();
-				}
 
 				$total = $this->export->wc_price( ( $total_unformatted - $total_tax ) );
 				$label = __( 'Total ex. VAT', 'wpo_wcpdf' );
 			} else {
-				$total = $this->export->order->get_formatted_order_total();
+				$total = $this->export->wc_price( ( $total_unformatted ) );
 				$label = __( 'Total', 'wpo_wcpdf' );
 			}
 			
