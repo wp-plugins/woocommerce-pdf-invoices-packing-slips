@@ -64,16 +64,24 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 				add_filter( 'wpo_wcpdf_use_path', '__return_false' );
 			}
 
+			// WooCommerce Subscriptions compatibility
 			if ( class_exists('WC_Subscriptions') ) {
-				add_action( 'woocommerce_subscriptions_renewal_order_created', array( $this, 'reset_invoice_data' ), 10, 4 );
+				if ( version_compare( WC_Subscriptions::$version, '2.0', '<' ) ) {
+					add_action( 'woocommerce_subscriptions_renewal_order_created', array( $this, 'reset_invoice_data' ), 10, 4 );
+				} else {
+					add_action( 'wcs_renewal_order_created', array( $this, 'reset_invoice_data' ), 10, 4 );
+				}
 			}
 
 			// WooCommerce Product Bundles compatibility (add row classes)
-
 			if ( class_exists('WC_Bundles') ) {
 				add_filter( 'wpo_wcpdf_item_row_class', array( $this, 'add_product_bundles_classes' ), 10, 3 );
 			}
 
+			// qTranslate-X compatibility
+			if ( function_exists('qtranxf_useCurrentLanguageIfNotFoundUseDefaultLanguage')) {
+				$this->qtranslatex_filters();
+			}
 		}
 
 		/**
@@ -343,20 +351,20 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			if( empty( $_GET['action'] ) || ! is_user_logged_in() || !check_admin_referer( $_GET['action'] ) ) {
 				wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
 			}
-			
+
 			// Check if all parameters are set
 			if( empty( $_GET['template_type'] ) || empty( $_GET['order_ids'] ) ) {
 				wp_die( __( 'Some of the export parameters are missing.', 'wpo_wcpdf' ) );
 			}
 
-			// Check the user privileges
-			if( !current_user_can( 'manage_woocommerce_orders' ) && !current_user_can( 'edit_shop_orders' ) && !isset( $_GET['my-account'] ) ) {
-				wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
-			}
-
 			$order_ids = (array) explode('x',$_GET['order_ids']);
 			// Process oldest first: reverse $order_ids array
 			$order_ids = array_reverse($order_ids);
+
+			// Check the user privileges
+			if( apply_filters( 'wpo_wcpdf_check_privs', !current_user_can( 'manage_woocommerce_orders' ) && !current_user_can( 'edit_shop_orders' ) && !isset( $_GET['my-account'] ), $order_ids ) ) {
+				wp_die( __( 'You do not have sufficient permissions to access this page.', 'wpo_wcpdf' ) );
+			}
 
 			// User call from my-account page
 			if ( isset( $_GET['my-account'] ) ) {
@@ -625,6 +633,8 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			delete_post_meta( $renewal_order->id, '_wcpdf_formatted_invoice_number' );
 			delete_post_meta( $renewal_order->id, '_wcpdf_invoice_date' );
 			delete_post_meta( $renewal_order->id, '_wcpdf_invoice_exists' );
+
+			return $renewal_order;
 		}
 
 		public function format_invoice_number( $invoice_number, $order_number, $order_id, $order_date ) {
@@ -986,6 +996,27 @@ if ( ! class_exists( 'WooCommerce_PDF_Invoices_Export' ) ) {
 			}
 
 			return $item_id;
+		}
+
+		/**
+		 * Filter plugin strings with qTranslate-X
+		 */
+		public function qtranslatex_filters() {
+			$use_filters = array(
+				'wpo_wcpdf_shop_name'		=> 20,
+				'wpo_wcpdf_shop_address'	=> 20,
+				'wpo_wcpdf_footer'			=> 20,
+				'wpo_wcpdf_order_items'		=> 20,
+				'wpo_wcpdf_payment_method'	=> 20,
+				'wpo_wcpdf_shipping_method'	=> 20,
+				'wpo_wcpdf_extra_1'			=> 20,
+				'wpo_wcpdf_extra_2'			=> 20,
+				'wpo_wcpdf_extra_3'			=> 20,
+			);
+
+			foreach ( $use_filters as $name => $priority ) {
+				add_filter( $name, 'qtranxf_useCurrentLanguageIfNotFoundUseDefaultLanguage', $priority );
+			}
 		}
 		
 		public function enable_debug () {
